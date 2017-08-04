@@ -357,7 +357,7 @@ public class JavaRenderer implements GLEventListener {
         gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT,GL2.GL_NICEST);
         gl.glEnable(GL2.GL_TEXTURE_2D);
         try{
-            String[] names = {"NewGame","fon","Analyze","MultiPlayer","Change","Exit","Back","White","Black","BlackWins","WhiteWins","Draw"};
+            String[] names = {"NewGame","fon","Analyze","MultiPlayer","Change","Exit","Back","White","Black","BlackWins","WhiteWins","Draw","wait"};
             int type = 1;
             for (String name : names){
                 File im = new File("Images/" + name + ".png");

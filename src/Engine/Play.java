@@ -40,9 +40,10 @@ public class Play implements Runnable {
                 first = false;
             }
 
-            System.out.println(1);
-            int[] num = new Ai().bfs(bitBoard,2 + ((white) ? 0 : 1), white);
-            System.out.println(2);
+            Menu.thinking = true;
+            int[] num = new Ai().bfs(bitBoard,6 + ((white) ? 0 : 1), white);
+            Menu.thinking = false;
+
 
             if (Menu.isInterrupted)
                 return;

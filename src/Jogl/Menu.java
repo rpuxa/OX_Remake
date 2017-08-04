@@ -9,7 +9,7 @@ import com.jogamp.opengl.GL2;
 
 public class Menu {
 
-    static int[] textures = new int[13];
+    static int[] textures = new int[14];
 
     private static final int NEW_GAME = 1;
     private static final int FON = 2;
@@ -23,10 +23,12 @@ public class Menu {
     private static final int BLACK_WINS = 10;
     private static final int WHITE_WINS = 11;
     private static final int DRAW = 12;
+    private static final int WAIT = 13;
 
     private static GL2 gl;
     private static boolean back_active = false;
     static boolean changing = false;
+    public static boolean thinking = false;
     private static Button new_game;
     private static Button analyze_button;
     private static Button multiplayer;
@@ -151,11 +153,13 @@ public class Menu {
         exit.display();
 
         if (JavaRenderer.position.end_game == Position.WHITE_WINS)
-            square(textures[WHITE_WINS], .75, 1, 0.4, 0.9);
+            square(textures[WHITE_WINS], .4, 1, 0.75, .9);
         else if (JavaRenderer.position.end_game == Position.BLACK_WINS)
-            square(textures[BLACK_WINS], .75, 1, 0.4, 0.9);
+            square(textures[BLACK_WINS], .4, 1, 0.75, .9);
         else if (JavaRenderer.position.end_game == Position.DRAW)
-            square(textures[DRAW], .75, 1, 0.4, 0.9);
+            square(textures[DRAW], .4, 1, 0.75, .9);
+        if (thinking)
+            square(textures[WAIT], 0.36, -0.77, .75, -1);
 
         JavaRenderer.mouse_click = false;
     }
