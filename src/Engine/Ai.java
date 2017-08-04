@@ -51,11 +51,11 @@ public class Ai {
         }
     }
     private int alphaBeta(BitBoard bitBoard, int depth, int maxDepth, int alpha, int beta){
-        if (Menu.isInterrupted)
+        if (Menu.isInterrupted || Analyze.analyze_interrupt)
             return 0;
-        if (bitBoard.win(true))
+        if (bitBoard.win(true)!=0)
             return 30000 - depth;
-        if (bitBoard.win(false))
+        if (bitBoard.win(false)!=0)
             return -30000 + depth;
         if ((bitBoard.white | bitBoard.black) == ~0L)
             return 0;
@@ -113,9 +113,9 @@ public class Ai {
     }
 
     private static int quies(BitBoard bitBoard, int depth, int alpha, int beta) {
-        if (bitBoard.win(true))
+        if (bitBoard.win(true)!=0)
             return 30000 - depth;
-        if (bitBoard.win(false))
+        if (bitBoard.win(false)!=0)
             return -30000 + depth;
         if ((bitBoard.white | bitBoard.black) == ~0L)
             return 0;

@@ -71,12 +71,14 @@ public class Play implements Runnable {
 
 
     public static boolean checkEnd(BitBoard bitBoard){
-        if (bitBoard.win(true)) {
+        if (bitBoard.win(true)!=0) {
             JavaRenderer.position.end_game = Position.WHITE_WINS;
+            JavaRenderer.position.mask = bitBoard.win(true);
             return true;
         }
-        if (bitBoard.win(false)){
+        if (bitBoard.win(false)!=0){
             JavaRenderer.position.end_game = Position.BLACK_WINS;
+            JavaRenderer.position.mask = bitBoard.win(false);
             return true;
         }
         if ((bitBoard.white | bitBoard.black) == ~0L){

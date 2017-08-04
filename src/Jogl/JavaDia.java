@@ -10,7 +10,7 @@ import com.jogamp.opengl.awt.GLCanvas;
 
 public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotionListener, MouseWheelListener {
     public static Thread displayT = new Thread(new JavaDia());
-    private static boolean bQuit = false;
+    static boolean bQuit = false;
     private static Point mouse_start_cords;
     private static int button = 0;
     private static Double mouse_start_angle;
@@ -57,7 +57,7 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
             bQuit = true;
             System.exit(0);
         }
-        if (Menu.changing || ((Menu.play.isAlive() || Menu.analyze.isAlive() || Menu.multi.isAlive()) && JavaRenderer.position.human_plays_for_white == JavaRenderer.position.isTurnWhite)) {
+        if (JavaRenderer.position.end_game == 0 && (Menu.changing || ((Menu.play.isAlive() || Menu.analyze.isAlive() || Menu.multi.isAlive()) && JavaRenderer.position.human_plays_for_white == JavaRenderer.position.isTurnWhite))) {
             if (keyPressed >= KeyEvent.VK_NUMPAD0 && keyPressed <= KeyEvent.VK_NUMPAD9) {
                 if (JavaRenderer.column_select == null || JavaRenderer.column_select >= 10)
                     JavaRenderer.column_select = keyPressed - KeyEvent.VK_NUMPAD0;
@@ -135,7 +135,7 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
         int rotation = e.getWheelRotation();
         if (rotation == 1 && JavaRenderer.distance >= -6.0f)
             JavaRenderer.distance -= JavaRenderer.wheel_sensitivity;
-        if (rotation == -1 && JavaRenderer.distance <= -2.5f)
+        if (rotation == -1 && JavaRenderer.distance <= -3.0f)
             JavaRenderer.distance += JavaRenderer.wheel_sensitivity;
     }
 

@@ -1,6 +1,7 @@
 package ChangePosition;
 
 import Engine.BitBoard;
+import Engine.Play;
 import Jogl.Ball;
 import Jogl.JavaRenderer;
 import Jogl.Menu;
@@ -16,7 +17,7 @@ public class Change implements Runnable {
         BitBoard bitBoard = BitBoard.make_bitboard_from_bitboard(JavaRenderer.position.bitBoard);
         while (true){
             while (JavaRenderer.column_chosen == null) {
-                if (Menu.isInterrupted)
+                if (Menu.isInterrupted) {
                     JavaRenderer.start_position = Position.make_position_from_position(JavaRenderer.position);
                     return;
                 }
@@ -24,7 +25,7 @@ public class Change implements Runnable {
                     Thread.sleep(98);
                 } catch (InterruptedException ignored) {
                 }
-
+            }
             int n = JavaRenderer.column_chosen;
             JavaRenderer.column_chosen = null;
 
@@ -32,6 +33,8 @@ public class Change implements Runnable {
             JavaRenderer.position.balls.add(new Ball(n, isTurnWhite));
             JavaRenderer.position.bitBoard = BitBoard.make_bitboard_from_bitboard(bitBoard);
 
+            if (Play.checkEnd(bitBoard))
+                return;
         }
     }
 }

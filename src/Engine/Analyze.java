@@ -14,7 +14,7 @@ class AnalyzePosition implements Runnable {
 
             for (int depth = 2; true; depth++) {
                 result = new Ai().alphaBetaStart(bitBoard, isTurnWhite ? 1 : 0, depth + (isTurnWhite ? 1 : 0));
-                if (Menu.isInterrupted)
+                if (Menu.isInterrupted || Analyze.analyze_interrupt)
                     return;
                 JavaRenderer.analyzed_column = result[0];
                 JavaRenderer.score = result[1];
@@ -24,28 +24,34 @@ class AnalyzePosition implements Runnable {
 
 public class Analyze implements Runnable {
 
+    static boolean analyze_interrupt = false;
+
     @Override
     public void run() {
+        analyze_interrupt = false;
         Thread analyzePosition = new Thread(new AnalyzePosition());
         BitBoard bitBoard = BitBoard.make_bitboard_from_bitboard(JavaRenderer.position.bitBoard);
         boolean isTurnWhite = JavaRenderer.position.isTurnWhite;
         analyzePosition.start();
         while (true) {
             while (JavaRenderer.column_chosen == null) {
-                if (Menu.isInterrupted)
+                if (Menu.isInterrupted) {
+                    analyze_interrupt = false;
                     return;
+                }
                 try {
                     Thread.sleep(99);
                 } catch (InterruptedException ignored) {
                 }
             }
             while (analyzePosition.isAlive()) {
-                analyzePosition.interrupt();
+                analyze_interrupt = true;
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException ignored) {
                 }
             }
+            analyze_interrupt = false;
 
             int n = JavaRenderer.column_chosen;
             JavaRenderer.column_chosen = null;
@@ -59,8 +65,19 @@ public class Analyze implements Runnable {
             analyzePosition = new Thread(new AnalyzePosition());
             analyzePosition.start();
 
-            if (Play.checkEnd(bitBoard))
-                break;
+            if (Play.checkEnd(bitBoard)){
+                JavaRenderer.analyzed_column = null;
+                while (analyzePosition.isAlive()) {
+                    analyze_interrupt = true;
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ignored) {
+                    }
+                }
+                analyze_interrupt = false;
+                JavaRenderer.analyzed_column = null;
+                return;
+            }
         }
     }
 }

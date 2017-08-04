@@ -9,31 +9,35 @@ import com.jogamp.opengl.GL2;
 
 public class Menu {
 
-    static int[] textures = new int[10];
+    static int[] textures = new int[13];
 
-    static final int NEW_GAME = 1;
-    static final int FON = 2;
-    static final int ANALYZE = 3;
-    static final int MULTIPLAYER = 4;
-    static final int CHANGE = 5;
-    static final int EXIT = 6;
-    static final int BACK = 7;
-    static final int WHITE = 8;
-    static final int BLACK = 9;
+    private static final int NEW_GAME = 1;
+    private static final int FON = 2;
+    private static final int ANALYZE = 3;
+    private static final int MULTIPLAYER = 4;
+    private static final int CHANGE = 5;
+    private static final int EXIT = 6;
+    private static final int BACK = 7;
+    private static final int WHITE = 8;
+    private static final int BLACK = 9;
+    private static final int BLACK_WINS = 10;
+    private static final int WHITE_WINS = 11;
+    private static final int DRAW = 12;
 
-    static GL2 gl;
-    static boolean back_active = false;
+    private static GL2 gl;
+    private static boolean back_active = false;
     static boolean changing = false;
-    static Button new_game;
-    static Button analyze_button;
-    static Button multiplayer;
-    static Button change;
-    static Button white;
-    static Button black;
-    static Button back;
+    private static Button new_game;
+    private static Button analyze_button;
+    private static Button multiplayer;
+    private static Button change;
+    private static Button white;
+    private static Button black;
+    private static Button back;
+    private static Button exit;
     static Thread play = new Thread();
     static Thread analyze = new Thread();
-    static Thread replace = new Thread();
+    private static Thread replace = new Thread();
     public static Thread multi = new Thread();
     public static boolean isInterrupted = false;
 
@@ -90,7 +94,7 @@ public class Menu {
             }
         };
 
-        back = new Button(BACK, textures[BACK], -.875, -.8, 0.2, 78.0 / 200) {
+        back = new Button(BACK, textures[BACK], -.875, -.7, 0.2, 78.0 / 200) {
 
             @Override
             public void click() {
@@ -99,9 +103,18 @@ public class Menu {
                 JavaRenderer.position = Position.make_position_from_position(JavaRenderer.start_position);
             }
         };
+
+        exit = new Button(EXIT, textures[EXIT], -.875, -.8, 0.2, 78.0 / 200) {
+
+            @Override
+            public void click() {
+                JavaDia.bQuit = true;
+                System.exit(0);
+            }
+        };
     }
 
-    static void interrupt() {
+    private static void interrupt() {
         JavaRenderer.mouse_click = false;
         changing = false;
         while (analyze.isAlive() || play.isAlive() || multi.isAlive() || replace.isAlive()) {
@@ -122,6 +135,7 @@ public class Menu {
     static void display(GL2 gl) {
         Menu.gl = gl;
         square(textures[FON], -1, 1, -0.75, -1);
+        square(textures[FON], 1, 1, 0.75, -1);
         if (!back_active && !changing) {
             new_game.display();
             analyze_button.display();
@@ -134,6 +148,15 @@ public class Menu {
             white.display();
             black.display();
         }
+        exit.display();
+
+        if (JavaRenderer.position.end_game == Position.WHITE_WINS)
+            square(textures[WHITE_WINS], .75, 1, 0.4, 0.9);
+        else if (JavaRenderer.position.end_game == Position.BLACK_WINS)
+            square(textures[BLACK_WINS], .75, 1, 0.4, 0.9);
+        else if (JavaRenderer.position.end_game == Position.DRAW)
+            square(textures[DRAW], .75, 1, 0.4, 0.9);
+
         JavaRenderer.mouse_click = false;
     }
 

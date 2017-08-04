@@ -1,5 +1,6 @@
 package Jogl;
 
+import Utils.BitUtils;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
@@ -22,8 +23,8 @@ public class JavaRenderer implements GLEventListener {
     static double AbsAngleX;
     static double AbsAngleY;
     static double AbsAngleZ;
-    static boolean human_plays_for_white = true;
-    static boolean isTurnWhite = true;
+    private static boolean human_plays_for_white = true;
+    private static boolean isTurnWhite = true;
     public static Position start_position = Position.make_position_empty(human_plays_for_white,isTurnWhite);
     public static Position position = Position.make_position_from_position(start_position);
     static Double mouse_at[];
@@ -79,16 +80,16 @@ public class JavaRenderer implements GLEventListener {
                     count_columns[ball.getColumn()]++;
             for (Jogl.Ball ball : ballsArray) {
                 if (ball.onGround)
-                    ellipse(gl, ball.white, ball.x, ball.y, ball.z);
+                    ellipse(gl, ball.white, ball.x, ball.y, ball.z,ball.getColumn());
                 else {
                     ball.speed += speed;
-                    if (ball.z - ball.speed <= -0.15 + 0.3 * count_columns[ball.column]) {
+                    if (ball.z - ball.speed <= -0.15 + 0.3 * count_columns[ball.getColumn()]) {
                         ball.onGround = true;
-                        ball.z = (float) (-0.15 + 0.3 * count_columns[ball.column]);
+                        ball.z = (float) (-0.15 + 0.3 * count_columns[ball.getColumn()]);
                     } else {
                         ball.z -= ball.speed;
                     }
-                    ellipse(gl, ball.white, ball.x, ball.y, ball.z);
+                    ellipse(gl, ball.white, ball.x, ball.y, ball.z,ball.getColumn());
                 }
             }
     }
@@ -216,13 +217,22 @@ public class JavaRenderer implements GLEventListener {
         gl.glEnd();
     }
 
-    private void ellipse(GL2 gl, boolean white, float x, float y, float z) {
+    private void ellipse(GL2 gl, boolean white, float x, float y, float z, int colomn) {
         float size = 0.11f;
+
+        int height = (int)((z+.15)/.3 - 1);
+
+        int bit_num = 16*height + colomn;
+
         gl.glBegin(GL2.GL_QUADS);
         if (white)
             gl.glColor3f(0.91f, 0.88f, 0.87f);
         else
             gl.glColor3f(0.25f, 0.18f, 0.0f);
+
+        if (BitUtils.getBit(position.mask,bit_num))
+            gl.glColor3f(1,0,0);
+
         for (float r2 = 0.01f; r2 < 2; r2 += 0.2f) {
             double r = Math.sqrt(1 - r2 * r2 / 2);
             double r3 = Math.sqrt(1 - (r2 + 0.2f) * (r2 + 0.2f) / 2);
@@ -260,7 +270,7 @@ public class JavaRenderer implements GLEventListener {
         gl.glEnd();
     }
 
-    void cylinder(GL2 gl, float height, float radius, float x, float y, float z, boolean dark, int num) {
+    private void cylinder(GL2 gl, float height, float radius, float x, float y, float z, boolean dark, int num) {
         gl.glBegin(GL2.GL_POLYGON);
         for (int i = 0; i < 360; i++) {
             color_brown(gl, height, radius, x, y, z, dark, num);
@@ -304,7 +314,7 @@ public class JavaRenderer implements GLEventListener {
 
     }
 
-    void color_brown(GL2 gl, float height, float radius, float x, float y, float z, boolean dark, int num) {
+    private void color_brown(GL2 gl, float height, float radius, float x, float y, float z, boolean dark, int num) {
         if (dark)
             gl.glColor3f(0.254f, 0.1f, 0.0f);
         else {
@@ -347,7 +357,7 @@ public class JavaRenderer implements GLEventListener {
         gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT,GL2.GL_NICEST);
         gl.glEnable(GL2.GL_TEXTURE_2D);
         try{
-            String[] names = {"NewGame","fon","Analyze","MultiPlayer","Change","Exit","Back","White","Black"};
+            String[] names = {"NewGame","fon","Analyze","MultiPlayer","Change","Exit","Back","White","Black","BlackWins","WhiteWins","Draw"};
             int type = 1;
             for (String name : names){
                 File im = new File("Images/" + name + ".png");

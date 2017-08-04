@@ -10,7 +10,7 @@ public class BitBoard {
     long white;
     long black;
 
-    BitBoard(long white, long black) {
+    private BitBoard(long white, long black) {
         this.white = white;
         this.black = black;
     }
@@ -36,25 +36,25 @@ public class BitBoard {
         return sortMoves(moves, isTurnWhite, checks);
     }
 
-    ArrayList<Byte> sortMoves(ArrayList<Byte> moves, boolean isTurnWhite, boolean checks) {
+    private ArrayList<Byte> sortMoves(ArrayList<Byte> moves, boolean isTurnWhite, boolean checks) {
         ArrayList<Byte> moves_checks = new ArrayList<>();
         ArrayList<Byte> moves_defence = new ArrayList<>();
         ArrayList<Byte> moves_generals = new ArrayList<>();
             for (byte move : moves) {
                 boolean check = false;
             BitBoard bitBoard = make_bitboard_from_bitboard(makeMove(this,isTurnWhite,move));
-            if (bitBoard.win(isTurnWhite)){
+            if (bitBoard.win(isTurnWhite)!=0){
                 ArrayList<Byte> sort = new ArrayList<>();
                 sort.add(move);
                 return sort;
             }
                 long all = bitBoard.white | bitBoard.black;
                BitBoard bitBoard1 = make_bitboard_from_bitboard(makeMove(this,!isTurnWhite,move));
-                if (bitBoard1.win(!isTurnWhite)){
+                if (bitBoard1.win(!isTurnWhite)!=0){
                     moves_defence.add(move);
                 } else {
                     for (byte i = 0; i < 16; i++)
-                        if (Long.bitCount(all & Mask.column[i]) < 4 && makeMove(bitBoard, isTurnWhite, i).win(isTurnWhite)) {
+                        if (Long.bitCount(all & Mask.column[i]) < 4 && makeMove(bitBoard, isTurnWhite, i).win(isTurnWhite)!=0) {
                             moves_checks.add(move);
                             check = true;
                             break;
@@ -102,14 +102,14 @@ public class BitBoard {
         return bitBoard;
     }
 
-    boolean win(boolean white) {
+    long win(boolean white) {
         for (int i = 0; i < Mask.diagonals.length; i++) {
             if (white && Long.bitCount(this.white & Mask.diagonals[i]) == 4)
-                return true;
+                return Mask.diagonals[i];
             if (!white && Long.bitCount(black & Mask.diagonals[i]) == 4)
-                return true;
+                return Mask.diagonals[i];
         }
-        return false;
+        return 0;
     }
 
     public boolean equals(Object obj) {
@@ -130,7 +130,7 @@ public class BitBoard {
         zKeys_long_gen();
     }
 
-    static void zKeys_long_gen(){
+    private static void zKeys_long_gen(){
         Random rand = new Random();
         for (int i = 0; i < 64; i++)
             for (int j = 0; j < 2; j++)
