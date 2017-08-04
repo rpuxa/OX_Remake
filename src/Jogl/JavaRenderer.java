@@ -220,7 +220,7 @@ public class JavaRenderer implements GLEventListener {
     private void ellipse(GL2 gl, boolean white, float x, float y, float z, int colomn) {
         float size = 0.11f;
 
-        int height = (int)((z+.15)/.3 - 1);
+        int height = (int)Math.round((z-.15)/.3);
 
         int bit_num = 16*height + colomn;
 
