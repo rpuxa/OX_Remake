@@ -36,9 +36,8 @@ public class Play implements Runnable {
 
                 if (checkEnd(bitBoard))
                     break;
-
-                first = false;
             }
+            first = false;
 
             Menu.thinking = true;
             int[] num = new Ai().bfs(bitBoard,6 + ((white) ? 0 : 1), white);

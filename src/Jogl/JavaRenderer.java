@@ -23,7 +23,7 @@ public class JavaRenderer implements GLEventListener {
     static double AbsAngleX;
     static double AbsAngleY;
     static double AbsAngleZ;
-    private static boolean human_plays_for_white = true;
+    private static boolean human_plays_for_white = false;
     private static boolean isTurnWhite = true;
     public static Position start_position = Position.make_position_empty(human_plays_for_white,isTurnWhite);
     public static Position position = Position.make_position_from_position(start_position);
