@@ -22,13 +22,17 @@ public class JavaRenderer implements GLEventListener {
     static double AbsAngleX;
     static double AbsAngleY;
     static double AbsAngleZ;
-    public static Position position = Position.make_position_empty(true);
+    static boolean human_plays_for_white = true;
+    static boolean isTurnWhite = true;
+    public static Position start_position = Position.make_position_empty(human_plays_for_white,isTurnWhite);
+    public static Position position = Position.make_position_from_position(start_position);
     static Double mouse_at[];
     static boolean mouse_press;
     static boolean mouse_click;
+    public static Integer analyzed_column;
+    public static Integer score;
     private float h;
-    public static boolean canAdd = true;
-    public static boolean canIterate = true;
+    static double speed = 0.005;
 
 
     public void display(GLAutoDrawable gLDrawable) {
@@ -56,22 +60,27 @@ public class JavaRenderer implements GLEventListener {
         gl.glVertex3f(0, 2, 0);
         gl.glEnd();
 
+        if (analyzed_column != null){
+            arrow(gl,-0.6f+0.4f*(3 - analyzed_column%4),-0.6f+0.4f*(analyzed_column/4),2.25f);
+        }
+
         cylinder(gl, 0.12f, 1.0f, 0, 0, 0, true, 0);
 
         for (float x = 0; x < 4; x++)
             for (float y = 0; y < 4; y++)
                 cylinder(gl, 1.2f, 0.03f, -0.6f + 0.4f * x, -0.6f + 0.4f * y, 0.66f, false, (int) (4 * y + 3 - x));
 
-        int count_columns[] = new int[16];
-        while (!canIterate) ;
-        canAdd = false;
-            for (Jogl.Ball ball : position.balls)
-                count_columns[ball.getColumn()]++;
-            for (Jogl.Ball ball : position.balls) {
+        int count_columns[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+
+        Jogl.Ball[] ballsArray = position.balls.toArray(new Jogl.Ball[0]);
+
+            for (Jogl.Ball ball : ballsArray)
                 if (ball.onGround)
-                    elipse(gl, ball.white, ball.x, ball.y, ball.z);
+                    count_columns[ball.getColumn()]++;
+            for (Jogl.Ball ball : ballsArray) {
+                if (ball.onGround)
+                    ellipse(gl, ball.white, ball.x, ball.y, ball.z);
                 else {
-                    double speed = 0.0005;
                     ball.speed += speed;
                     if (ball.z - ball.speed <= -0.15 + 0.3 * count_columns[ball.column]) {
                         ball.onGround = true;
@@ -79,13 +88,135 @@ public class JavaRenderer implements GLEventListener {
                     } else {
                         ball.z -= ball.speed;
                     }
-                    elipse(gl, ball.white, ball.x, ball.y, ball.z);
+                    ellipse(gl, ball.white, ball.x, ball.y, ball.z);
                 }
             }
-            canAdd = true;
     }
 
-    void elipse(GL2 gl, boolean white, float x, float y, float z) {
+    private void arrow(GL2 gl, float x, float y, float z){
+        final float size = .2f;
+        gl.glBegin(GL2.GL_QUADS);
+        gl.glVertex3f(x + size/12, y + size/12, z + size/2);
+        gl.glVertex3f(x + size/12, y - size/12, z + size/2);
+        gl.glVertex3f(x - size/12, y - size/12, z + size/2);
+        gl.glVertex3f(x - size/12, y + size/12, z + size/2);
+
+
+        gl.glVertex3f(x + size/12, y + size/12, z + size/2);
+        gl.glVertex3f(x + size/12, y + size/12, z - size/6);
+        gl.glVertex3f(x - size/12, y + size/12, z - size/6);
+        gl.glVertex3f(x - size/12, y + size/12, z + size/2);
+
+        gl.glVertex3f(x + size/12, y + size/12, z - size/6);
+        gl.glVertex3f(x - size/12, y + size/12, z - size/6);
+        gl.glVertex3f(x - size/12, y + size/12 + size/6, z);
+        gl.glVertex3f(x + size/12, y + size/12 + size/6, z);
+
+        gl.glVertex3f(x - size/12, y + size/12 + size/6, z);
+        gl.glVertex3f(x + size/12, y + size/12 + size/6, z);
+        gl.glVertex3f(x + size/12, y, z - size/2);
+        gl.glVertex3f(x - size/12, y, z - size/2);
+
+        gl.glVertex3f(x + size/12, y, z - size/2);
+        gl.glVertex3f(x - size/12, y, z - size/2);
+        gl.glVertex3f(x - size/12, y - size/12 - size/6, z);
+        gl.glVertex3f(x + size/12, y - size/12 - size/6, z);
+
+        gl.glVertex3f(x - size/12, y - size/12 - size/6, z);
+        gl.glVertex3f(x + size/12, y - size/12 - size/6, z);
+        gl.glVertex3f(x + size/12, y - size/12, z - size/6);
+        gl.glVertex3f(x - size/12, y - size/12, z - size/6);
+
+        gl.glVertex3f(x - size/12, y - size/12, z - size/6);
+        gl.glVertex3f(x - size/12, y - size/12, z + size/2);
+        gl.glVertex3f(x + size/12, y - size/12, z + size/2);
+        gl.glVertex3f(x + size/12, y - size/12, z - size/6);
+        gl.glEnd();
+
+        gl.glBegin(GL2.GL_QUADS);
+        gl.glVertex3f(x + size/12, y - size/12, z + size/2);
+        gl.glVertex3f(x + size/12, y + size/12, z + size/2);
+        gl.glVertex3f(x + size/12, y + size/12, z - size/6);
+        gl.glVertex3f(x + size/12, y - size/12, z - size/6);
+        gl.glEnd();
+
+        gl.glBegin(GL2.GL_TRIANGLES);
+        gl.glVertex3f(x + size/12, y + size/12, z - size/6);
+        gl.glVertex3f(x + size/12, y + size/12 + size/6, z);
+        gl.glVertex3f(x + size/12, y, z - size/2);
+
+        gl.glVertex3f(x + size/12, y - size/12, z - size/6);
+        gl.glVertex3f(x + size/12, y - size/12 - size/6, z);
+        gl.glVertex3f(x + size/12, y, z - size/2);
+
+        gl.glVertex3f(x + size/12, y + size/12, z - size/6);
+        gl.glVertex3f(x + size/12, y - size/12, z - size/6);
+        gl.glVertex3f(x + size/12, y, z - size/2);
+
+        gl.glEnd();
+
+        gl.glBegin(GL2.GL_QUADS);
+        gl.glVertex3f(x - size/12, y - size/12, z + size/2);
+        gl.glVertex3f(x - size/12, y + size/12, z + size/2);
+        gl.glVertex3f(x - size/12, y + size/12, z - size/6);
+        gl.glVertex3f(x - size/12, y - size/12, z - size/6);
+        gl.glEnd();
+
+        gl.glBegin(GL2.GL_TRIANGLES);
+        gl.glVertex3f(x - size/12, y + size/12, z - size/6);
+        gl.glVertex3f(x - size/12, y + size/12 + size/6, z);
+        gl.glVertex3f(x - size/12, y, z - size/2);
+
+        gl.glVertex3f(x - size/12, y - size/12, z - size/6);
+        gl.glVertex3f(x - size/12, y - size/12 - size/6, z);
+        gl.glVertex3f(x - size/12, y, z - size/2);
+
+        gl.glVertex3f(x - size/12, y + size/12, z - size/6);
+        gl.glVertex3f(x - size/12, y - size/12, z - size/6);
+        gl.glVertex3f(x - size/12, y, z - size/2);
+
+        gl.glEnd();
+
+        gl.glBegin(GL2.GL_LINE_LOOP);
+        gl.glColor3f(0,0,0);
+        gl.glVertex3f(x + size/12, y + size/12, z + size/2);
+        gl.glVertex3f(x + size/12, y + size/12, z - size/6);
+        gl.glVertex3f(x + size/12, y + size/12 + size/6, z);
+        gl.glVertex3f(x + size/12, y, z - size/2);
+        gl.glVertex3f(x + size/12, y - size/12 - size/6, z);
+        gl.glVertex3f(x + size/12, y - size/12, z - size/6);
+        gl.glVertex3f(x + size/12, y - size/12, z + size/2);
+        gl.glEnd();
+
+        gl.glBegin(GL2.GL_LINE_LOOP);
+        gl.glVertex3f(x - size/12, y + size/12, z + size/2);
+        gl.glVertex3f(x - size/12, y + size/12, z - size/6);
+        gl.glVertex3f(x - size/12, y + size/12 + size/6, z);
+        gl.glVertex3f(x - size/12, y, z - size/2);
+        gl.glVertex3f(x - size/12, y - size/12 - size/6, z);
+        gl.glVertex3f(x - size/12, y - size/12, z - size/6);
+        gl.glVertex3f(x - size/12, y - size/12, z + size/2);
+        gl.glEnd();
+
+        gl.glBegin(GL2.GL_LINES);
+        gl.glVertex3f(x + size/12, y + size/12, z + size/2);
+        gl.glVertex3f(x - size/12, y + size/12, z + size/2);
+        gl.glVertex3f(x + size/12, y + size/12, z - size/6);
+        gl.glVertex3f(x - size/12, y + size/12, z - size/6);
+        gl.glVertex3f(x + size/12, y + size/12 + size/6, z);
+        gl.glVertex3f(x - size/12, y + size/12 + size/6, z);
+        gl.glVertex3f(x + size/12, y, z - size/2);
+        gl.glVertex3f(x - size/12, y, z - size/2);
+        gl.glVertex3f(x + size/12, y - size/12 - size/6, z);
+        gl.glVertex3f(x - size/12, y - size/12 - size/6, z);
+        gl.glVertex3f(x + size/12, y - size/12, z - size/6);
+        gl.glVertex3f(x - size/12, y - size/12, z - size/6);
+        gl.glVertex3f(x + size/12, y - size/12, z + size/2);
+        gl.glVertex3f(x - size/12, y - size/12, z + size/2);
+        gl.glEnd();
+    }
+
+    private void ellipse(GL2 gl, boolean white, float x, float y, float z) {
         float size = 0.11f;
         gl.glBegin(GL2.GL_QUADS);
         if (white)
@@ -216,7 +347,7 @@ public class JavaRenderer implements GLEventListener {
         gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT,GL2.GL_NICEST);
         gl.glEnable(GL2.GL_TEXTURE_2D);
         try{
-            String[] names = {"NewGame","fon"};
+            String[] names = {"NewGame","fon","Analyze","MultiPlayer","Change","Exit","Back","White","Black"};
             int type = 1;
             for (String name : names){
                 File im = new File("Images/" + name + ".png");

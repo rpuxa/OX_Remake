@@ -91,7 +91,7 @@ public class BitBoard {
         return sort;
     }
 
-    static BitBoard makeMove(BitBoard bitBoard2, boolean white, byte move){
+    public static BitBoard makeMove(BitBoard bitBoard2, boolean white, byte move){
         BitBoard bitBoard = BitBoard.make_bitboard_from_bitboard(bitBoard2);
         long all = bitBoard.white | bitBoard.black;
         int z = Long.bitCount(all & Mask.column[move]);

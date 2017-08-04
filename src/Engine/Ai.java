@@ -1,13 +1,15 @@
 package Engine;
 
+import Jogl.Menu;
+
 import java.util.*;
 
-class Ai {
+public class Ai {
     Ai() {
     }
 
     private Map<BitBoard,Integer> history_score = new HashMap<>();
-    static Map<Long,int[]> history_moves = new HashMap<>();
+    public static Map<Long,int[]> history_moves = new HashMap<>();
 
     int[] bfs(BitBoard bitBoard, int depth, boolean white){
         int num[] = new int[2];
@@ -20,7 +22,7 @@ class Ai {
         return num;
     }
 
-    private int[] alphaBetaStart(BitBoard bitBoard, int depth, int maxDepth){
+    int[] alphaBetaStart(BitBoard bitBoard, int depth, int maxDepth){
         int alpha = -100000, beta = 100000;
         ArrayList<int[]> sort = new ArrayList<>();
         byte best = 0;
@@ -49,6 +51,8 @@ class Ai {
         }
     }
     private int alphaBeta(BitBoard bitBoard, int depth, int maxDepth, int alpha, int beta){
+        if (Menu.isInterrupted)
+            return 0;
         if (bitBoard.win(true))
             return 30000 - depth;
         if (bitBoard.win(false))

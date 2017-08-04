@@ -43,6 +43,10 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
         canvas.requestFocus();
         while( !bQuit ) {
             canvas.display();
+            try {
+                Thread.sleep(1000/30);
+            } catch (InterruptedException ignored) {
+            }
         }
     }
 
@@ -53,7 +57,7 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
             bQuit = true;
             System.exit(0);
         }
-        if (Menu.play.isAlive() || Menu.analyze.isAlive()) {
+        if (Menu.changing || ((Menu.play.isAlive() || Menu.analyze.isAlive() || Menu.multi.isAlive()) && JavaRenderer.position.human_plays_for_white == JavaRenderer.position.isTurnWhite)) {
             if (keyPressed >= KeyEvent.VK_NUMPAD0 && keyPressed <= KeyEvent.VK_NUMPAD9) {
                 if (JavaRenderer.column_select == null || JavaRenderer.column_select >= 10)
                     JavaRenderer.column_select = keyPressed - KeyEvent.VK_NUMPAD0;
@@ -68,6 +72,8 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
                 JavaRenderer.column_chosen = JavaRenderer.column_select;
                 JavaRenderer.column_select = null;
             }
+        } else {
+            JavaRenderer.column_select = null;
         }
     }
 
