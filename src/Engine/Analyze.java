@@ -58,6 +58,7 @@ public class Analyze implements Runnable {
             bitBoard = BitBoard.makeMove(bitBoard, isTurnWhite, (byte) n);
             JavaRenderer.position.balls.add(new Ball(n, isTurnWhite));
             JavaRenderer.position.isTurnWhite = !JavaRenderer.position.isTurnWhite;
+            JavaRenderer.position.human_plays_for_white = !JavaRenderer.position.human_plays_for_white;
             isTurnWhite = !isTurnWhite;
             JavaRenderer.position.bitBoard = BitBoard.make_bitboard_from_bitboard(bitBoard);
             JavaRenderer.analyzed_column = null;
