@@ -13,11 +13,14 @@ class AnalyzePosition implements Runnable {
             int[] result;
 
             for (int depth = 2; true; depth++) {
-                result = new Ai().alphaBetaStart(bitBoard, isTurnWhite ? 1 : 0, depth + (isTurnWhite ? 1 : 0));
+                result = new Ai(isTurnWhite).alphaBetaStart(bitBoard, isTurnWhite ? 1 : 0, depth + (isTurnWhite ? 1 : 0));
                 if (Menu.isInterrupted || Analyze.analyze_interrupt)
                     return;
                 JavaRenderer.analyzed_column = result[0];
                 JavaRenderer.score = result[1];
+                JavaRenderer.depth = depth;
+                if (depth > 39)
+                    return;
             }
         }
     }

@@ -5,10 +5,13 @@ import Jogl.Menu;
 import java.util.*;
 
 public class Ai {
-    Ai() {
+
+    private boolean turnWhite;
+
+    public Ai(boolean turnWhite) {
+        this.turnWhite = turnWhite;
     }
 
-    private Map<BitBoard,Integer> history_score = new HashMap<>();
     public static Map<Long,int[]> history_moves = new HashMap<>();
 
     int[] bfs(BitBoard bitBoard, int depth, boolean white){
@@ -17,12 +20,11 @@ public class Ai {
             num = alphaBetaStart(bitBoard,(white) ? 0:1,i);
             if (num[1] > 20000 || num[1] < -20000)
                 break;
-            history_score.clear();
         }
         return num;
     }
 
-    int[] alphaBetaStart(BitBoard bitBoard, int depth, int maxDepth){
+    public int[] alphaBetaStart(BitBoard bitBoard, int depth, int maxDepth){
         int alpha = -100000, beta = 100000;
         ArrayList<int[]> sort = new ArrayList<>();
         byte best = 0;
@@ -54,15 +56,11 @@ public class Ai {
         if (Menu.isInterrupted || Analyze.analyze_interrupt)
             return 0;
         if (bitBoard.win(true)!=0)
-            return 30000 - depth;
+            return 30000 - depth + ((turnWhite) ? 1 : 0);
         if (bitBoard.win(false)!=0)
-            return -30000 + depth;
+            return -30000 + depth - ((turnWhite) ? 1 : 0);
         if ((bitBoard.white | bitBoard.black) == ~0L)
             return 0;
-
-        Integer hashScore = history_score.get(bitBoard);
-        if (hashScore != null)
-            return hashScore;
 
         if (depth >= maxDepth)
             return Eval.evaluate(BitBoard.make_bitboard_from_bitboard(bitBoard));
@@ -82,7 +80,6 @@ public class Ai {
                 if (alpha >= beta)
                     break;
             }
-            history_score.put(BitBoard.make_bitboard_from_bitboard(bitBoard),beta);
             historyHashing(1, sort, bitBoard.getKey());
             return beta;
         } else {
@@ -97,7 +94,6 @@ public class Ai {
                 if (alpha >= beta)
                     break;
             }
-            history_score.put(BitBoard.make_bitboard_from_bitboard(bitBoard),alpha);
            historyHashing(-1, sort, bitBoard.getKey());
             return alpha;
         }

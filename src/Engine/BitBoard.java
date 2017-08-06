@@ -7,10 +7,10 @@ import static Utils.BitUtils.*;
 
 
 public class BitBoard {
-    long white;
-    long black;
+    public long white;
+    public long black;
 
-    private BitBoard(long white, long black) {
+    public BitBoard(long white, long black) {
         this.white = white;
         this.black = black;
     }

@@ -4,7 +4,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 
+import Engine.Mask;
 import com.jogamp.opengl.awt.GLCanvas;
 
 
@@ -15,6 +17,7 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
     private static int button = 0;
     private static Double mouse_start_angle;
     private static GLCanvas canvas = new GLCanvas();
+    public static boolean textBox_active = false;
     private static final double pi = 3.141592;
 
     public void run() {
@@ -52,29 +55,7 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
 
     public void keyPressed(KeyEvent e) {
         int keyPressed = e.getKeyCode();
-        if (keyPressed == KeyEvent.VK_ESCAPE) {
-            displayT = null;
-            bQuit = true;
-            System.exit(0);
-        }
-        if (JavaRenderer.position.end_game == 0 && (Menu.changing || ((Menu.play.isAlive() || Menu.analyze.isAlive() || Menu.multi.isAlive()) && JavaRenderer.position.human_plays_for_white == JavaRenderer.position.isTurnWhite))) {
-            if (keyPressed >= KeyEvent.VK_NUMPAD0 && keyPressed <= KeyEvent.VK_NUMPAD9) {
-                if (JavaRenderer.column_select == null || JavaRenderer.column_select >= 10)
-                    JavaRenderer.column_select = keyPressed - KeyEvent.VK_NUMPAD0;
-                else {
-                    JavaRenderer.column_select *= 10;
-                    JavaRenderer.column_select += keyPressed - KeyEvent.VK_NUMPAD0;
-                }
-            }
-            if (keyPressed == KeyEvent.VK_BACK_SPACE)
-                JavaRenderer.column_select = null;
-            if (keyPressed == KeyEvent.VK_ENTER && JavaRenderer.column_select != null) {
-                JavaRenderer.column_chosen = JavaRenderer.column_select;
-                JavaRenderer.column_select = null;
-            }
-        } else {
-            JavaRenderer.column_select = null;
-        }
+
     }
 
     public void keyReleased(KeyEvent e) {
@@ -83,9 +64,21 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
     public void keyTyped(KeyEvent e) {
     }
 
+    private static long when_click;
+
     public void mouseClicked(MouseEvent e) {
-        if (e.getButton() == MouseEvent.BUTTON1)
-            JavaRenderer.mouse_click = true;
+        if (e.getButton() == MouseEvent.BUTTON1) {
+            Point point = e.getPoint();
+            JavaRenderer.mouse_click = new double[2];
+            JavaRenderer.mouse_click[0] = 2*point.getX()/canvas.getSize().getWidth()-1;
+            JavaRenderer.mouse_click[1] = 2*(canvas.getSize().getHeight() - point.getY())/canvas.getSize().getHeight()-1;
+            if (e.getWhen() - when_click <= 500) {
+                JavaRenderer.mouse_double_click = true;
+                when_click = 0;
+            } else
+                when_click = e.getWhen();
+        }
+
     }
 
     public void mousePressed(MouseEvent e){
@@ -127,6 +120,7 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
     public void mouseMoved(MouseEvent e){
         JavaRenderer.mouse_at = new Double[2];
         Point point = e.getPoint();
+        JavaRenderer.mouse_cords_viewport = new Point(point.x, (int) (canvas.getSize().getHeight()-point.y-1));
         JavaRenderer.mouse_at[0] = 2*point.getX()/canvas.getSize().getWidth()-1;
         JavaRenderer.mouse_at[1] = 2*(canvas.getSize().getHeight() - point.getY())/canvas.getSize().getHeight()-1;
     }

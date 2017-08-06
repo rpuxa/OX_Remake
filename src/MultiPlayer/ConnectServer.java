@@ -6,6 +6,7 @@ import Jogl.Ball;
 import Jogl.JavaRenderer;
 import Jogl.Menu;
 import Jogl.Position;
+import static Jogl.Menu.massage;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -23,6 +24,9 @@ public class ConnectServer implements Runnable {
     private static String BEGIN_GAME_FOR_BLACK = "black";
     private static String GAME_OVER = "close";
     private static String LOST_CONNECTION = "lost";
+    private static String CHECK_CONNECTION = "check";
+    private static Thread moveListner;
+    private static Thread serverListner;
 
     @Override
     public void run() {
@@ -30,7 +34,7 @@ public class ConnectServer implements Runnable {
             if (ipAddress == null)
                 ipAddress = InetAddress.getByName("localhost");
             Socket socket;
-            System.out.println("Подключение к серверу ...");
+            massage = "Connecting Server...";
             while (true) {
                 try {
                     socket = new Socket(ipAddress, server_port);
@@ -40,30 +44,35 @@ public class ConnectServer implements Runnable {
                 if (Menu.isInterrupted)
                     return;
             }
-            System.out.println("Связь с сервером установленна.");
+            massage = "Waiting for players. Please wait...";
 
             DataInputStream in = new DataInputStream(socket.getInputStream());
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 
-            new Thread(new ServerListener(in)).start();
-
-            System.out.println("Ожидание игроков...");
+            serverListner = new Thread(new ServerListener(in));
+            serverListner.start();
 
             while (true){
                 if (server_command != null){
                     if (Objects.equals(server_command, BEGIN_GAME_FOR_WHITE)) {
-                        System.out.println("Оппонент найден! Вы играете за белых");
+                        massage = "Opponent found! You play for white";
+                        Menu.show_turn = true;
                         JavaRenderer.position = Position.make_position_empty(true, true);
-                        new Thread(new MoveListener(out)).start();
+                        moveListner = new Thread(new MoveListener(out));
+                        moveListner.start();
                     }
                     else if (Objects.equals(server_command, BEGIN_GAME_FOR_BLACK)){
-                        System.out.println("Оппонент найден! Вы играете за черных");
+                        massage = "Opponent found! You play for black";
+                        Menu.show_turn = true;
                         JavaRenderer.position = Position.make_position_empty(false, true);
-                        new Thread(new MoveListener(out)).start();
+                        moveListner = new Thread(new MoveListener(out));
+                        moveListner.start();
                     }
                     else if (Objects.equals(server_command, LOST_CONNECTION)){
-                        System.out.println("Ваш оппонент потерял соединение.");
+                        massage = "You opponent lost connection. You win!";
                         return;
+                    }else if (Objects.equals(server_command, CHECK_CONNECTION)) {
+                        server_command = null;
                     } else {
                         int move = Integer.parseInt(server_command);
                         BitBoard bitBoard = BitBoard.make_bitboard_from_bitboard(JavaRenderer.position.bitBoard);
@@ -72,16 +81,21 @@ public class ConnectServer implements Runnable {
                         JavaRenderer.position.balls.add(new Ball(move, isTurnWhite));
                         JavaRenderer.position.isTurnWhite = !JavaRenderer.position.isTurnWhite;
                         JavaRenderer.position.bitBoard = BitBoard.make_bitboard_from_bitboard(bitBoard);
+                        Play.checkEnd(bitBoard);
                     }
                     server_command = null;
                 }
-                if (Menu.isInterrupted)
+                if (Menu.isInterrupted){
+                    Thread.sleep(300);
+                    in.close();
                     return;
+                }
                 Thread.sleep(500);
             }
 
 
-        } catch (Exception ignore) {
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -99,12 +113,12 @@ public class ConnectServer implements Runnable {
             try {
                 while (true) {
                     server_command = in.readUTF();
-                    Thread.sleep(1000);
+                    Thread.sleep(100);
                     if (Menu.isInterrupted)
                         return;
                 }
             } catch (Exception ignored) {
-                System.out.println("Связь потеряна");
+                massage = "Lost connection with server.";
             }
         }
     }
@@ -123,8 +137,8 @@ public class ConnectServer implements Runnable {
                 while (true) {
                     if (JavaRenderer.position.end_game != 0){
                         out.writeUTF(GAME_OVER);
-                        Menu.multi.interrupt();
                         out.flush();
+                        return;
                     }
                     if (JavaRenderer.column_chosen != null){
                         int move = JavaRenderer.column_chosen;

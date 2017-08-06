@@ -5,7 +5,7 @@ import static Utils.BitUtils.setBit;
 
 public class Mask {
     static long column[] = new long[16];
-    static long diagonals[] = new long[76];
+    public static long diagonals[] = new long[76];
     static long under_diagonals[][][] = new long[76][4][2];
 
     public static void calculate() {

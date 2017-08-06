@@ -14,7 +14,6 @@ public class Play implements Runnable {
         boolean isTurnWhite = JavaRenderer.position.isTurnWhite;
         while (true){
             if (!first || isTurnWhite == white) {
-                System.out.println(0);
                 while (JavaRenderer.column_chosen == null) {
                     if (Menu.isInterrupted)
                         return;
@@ -23,7 +22,6 @@ public class Play implements Runnable {
                     } catch (InterruptedException ignored) {
                     }
                 }
-                System.out.println(3);
 
 
                 int n = JavaRenderer.column_chosen;
@@ -40,7 +38,7 @@ public class Play implements Runnable {
             first = false;
 
             Menu.thinking = true;
-            int[] num = new Ai().bfs(bitBoard,6 + ((white) ? 0 : 1), white);
+            int[] num = new Ai(white).bfs(bitBoard,6 + ((white) ? 0 : 1), white);
             Menu.thinking = false;
 
 
