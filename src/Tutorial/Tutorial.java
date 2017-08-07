@@ -14,163 +14,42 @@ public class Tutorial implements Runnable {
 
     public static boolean canMove = false;
 
+    static final String COMPLETE = "Задача решена!";
+
     @Override
     public void run() {
-        JavaRenderer.position = Position.make_position_empty(true,true);
-
-        new Stage() {
-            @Override
-            void set() {
-                text = "Добро пожаловать в игру крестики нолики в кубе!\nЭтот туториал ознокомит вас с правилами игры";
-            }
-
-        }.start();
-
-        new Stage() {
-            @Override
-            void set() {
-                text = "Игроки кидают \"бусинки\" поочереди в один из столбиков!\nЦель игры составить ряд из 4 бусинок своего цвета.\nПри этом не важно как будут выстроенны бусинки (по диагонали, в стобик и.т.п),\n главное, чтобы они составляли пряму линию";
-            }
-
-        }.start();
-
-        new Stage() {
-
-            @Override
-            void set() {
-                text = "Игра происходит на доске с 16 столбиками, на которые нанизываются бусинки.\nЗадача:\nДержа ЛКМ попробуйте изменить угол обзора доски.";
-            }
-        }.start();
+        JavaRenderer.position = Position.make_position_empty(true, true);
         try {
+            new Stage("Добро пожаловать в игру крестики нолики в кубе!\nЭтот туториал ознокомит вас с правилами игры");
+            new Stage("Игроки кидают \"бусинки\" поочереди в один из столбиков!\nЦель игры составить ряд из 4 бусинок своего цвета.\nПри этом не важно как будут выстроенны бусинки (по диагонали, в стобик и.т.п),\n главное, чтобы они составляли пряму линию");
+            new Stage("Игра происходит на доске с 16 столбиками, на которые нанизываются бусинки.\nЗадача:\nДержа ЛКМ попробуйте изменить угол обзора доски.");
             changeView1();
-        } catch (InterruptedException ignored) {
-        }
-
-        new Stage() {
-
-            @Override
-            void set() {
-                text = "Отлично! Теперь удерживая ПКМ разверните доску";
-            }
-        }.start();
-        try {
+            new Stage("Отлично! Теперь удерживая ПКМ разверните доску");
             changeView2();
-        } catch (InterruptedException ignored) {
-        }
-
-        new Stage() {
-
-            @Override
-            void set() {
-                text = "А теперь попробуйте изменить размер доски колесиком мыши";
-            }
-        }.start();
-        try {
+            new Stage("А теперь попробуйте изменить размер доски колесиком мыши");
             changeView3();
-        } catch (InterruptedException ignored) {
-        }
-
-        canMove = true;
-
-        new Stage() {
-
-            @Override
-            void set() {
-                text = "Для того чтобы осуществить ход нужно\n навести мышь на нужный столбик и сделать двойной щелчок.\nЗадача:\nСделать ход в любое место.";
-            }
-        }.start();
-
-        try {
+            canMove = true;
+            new Stage("Для того чтобы осуществить ход нужно\n навести мышь на нужный столбик и сделать двойной щелчок.\nЗадача:\nСделать ход в любое место.");
             makeMove();
+            new Stage("А сейчас попробуйте решить пару простейший задач, для усвоения правил игры\nЗадача:\nРешить несколько упражнений точным ходом\n(вы играете за белых)"
+                    , 1, 0b1011, 0b100110000000000);
+            new Stage(COMPLETE
+                    , 1, 0b1000100000001, 0b1110);
+            new Stage(COMPLETE
+                    , 1, 0b1000000000100001, 0b10000000000000110);
+            new Stage(COMPLETE
+                    , 1, 0b1100_00000000_00001010_00000000_00000001L, 262222L);
+            new Stage(COMPLETE
+                    , 1, 0b10000_00000000_00000001_00000000_00010000_00000000_00000000_00010001L, 17592202825984L);
+            new Stage(COMPLETE
+                    , 1, 0b1_00000000_00100000_00000100_00000001_00000000_00000001L, 4297065504L);
+            new Stage("Отлично! Но чтобы победить в игре в с сильным противником\n нужно уметь создавать двойные угрозы (узлы), от которых нельзя защитиься\nЗадача:\nНайдите победу в 2 хода создав узел"
+                    , 2, 8274L, 7169L);
+            new Stage(COMPLETE
+                    , 2, 36912L, 2626L);
+            new Stage("Вы изучили все основы игры!\nНажмите кнопку \"<-back\" и \"New Game\",\nчтобы попробовать сразиться с компьютером.");
         } catch (InterruptedException ignored) {
         }
-
-
-
-        new Stage(1) {
-
-            @Override
-            void set() {
-                text = "А сейчас попробуйте решить пару простейший задач, для усвоения правил игры\nЗадача:\nРешить несколько упражнений точным ходом\n(вы играете за белых)";
-                bitBoard = new BitBoard(0b1011,0b100110000000000);
-            }
-        }.start();
-
-        new Stage(1) {
-
-            @Override
-            void set() {
-                text = "Задача решена!";
-                bitBoard = new BitBoard(0b1000100000001,0b1110);
-            }
-        }.start();
-
-        new Stage(1) {
-
-            @Override
-            void set() {
-                text = "Задача решена!";
-                bitBoard = new BitBoard(0b1000000000100001,0b10000000000000110);
-            }
-        }.start();
-
-
-        new Stage(1) {
-
-            @Override
-            void set() {
-                text = "Задача решена!";
-                bitBoard = new BitBoard(0b1100_00000000_00001010_00000000_00000001L,262222L);
-            }
-        }.start();
-
-        new Stage(1) {
-
-            @Override
-            void set() {
-                text = "Задача решена!";
-                bitBoard = new BitBoard(0b10000_00000000_00000001_00000000_00010000_00000000_00000000_00010001L,17592202825984L);
-            }
-        }.start();
-
-        new Stage(1) {
-
-            @Override
-            void set() {
-                text = "Задача решена!";
-                bitBoard = new BitBoard(0b1_00000000_00100000_00000100_00000001_00000000_00000001L,4297065504L);
-            }
-        }.start();
-      canMove = true;
-
-        new Stage(2) {
-
-            @Override
-            void set() {
-                text = "Отлично! Но чтобы победить в игре в с сильным противником\n нужно уметь создавать двойные угрозы (узлы), от которых нельзя защитиься\nЗадача:\nНайдите победу в 2 хода создав узел";
-                bitBoard = new BitBoard(8274L,7169L);
-            }
-        }.start();
-
-        new Stage(2) {
-
-            @Override
-            void set() {
-                text = "Задача решена!";
-                bitBoard = new BitBoard(36912L,2626L);
-            }
-        }.start();
-
-        Menu.back.visible = true;
-        canMove = false;
-
-        new Stage() {
-
-            @Override
-            void set() {
-                text = "Вы изучили все основы игры!\nНажмите кнопку \"<-back\" и \"New Game\",\nчтобы попробовать сразиться с компьютером.";
-            }
-        }.start();
     }
 
     private static void changeView1() throws InterruptedException {
@@ -207,38 +86,33 @@ public class Tutorial implements Runnable {
     }
 
 
-    private abstract class Stage {
+    private class Stage {
         String text;
         int action;
         BitBoard bitBoard;
         Position position;
 
-        Stage(){
+        private Stage(String text) {
+            this.text = text;
+            start();
         }
 
-        Stage(int action){
+        private Stage(String text, int action, long white, long black) {
+            this.text = text;
             this.action = action;
+            bitBoard = new BitBoard(white, black);
+            position = Position.make_position_from_bitboard(bitBoard);
+            JavaRenderer.position = Position.make_position_from_position(position);
+            start();
         }
-
-        abstract void set();
 
         void start() {
-            set();
             JOptionPane.showMessageDialog(null, text, "Туториал к игре", JOptionPane.PLAIN_MESSAGE);
-            if (action != 0) {
-                position = Position.make_position_from_bitboard(bitBoard);
-                JavaRenderer.position = Position.make_position_from_position(position);
-            }
-            if (action == 1)
-                makeMove(1);
-            if (action == 2)
-                makeMove(2);
-            if (action == 3)
-                makeMove(3);
+            makeMove(action);
         }
 
 
-        void makeMove(int count){
+        void makeMove(int count) {
             int moves;
             while (true) {
                 BitBoard bitBoard = BitBoard.make_bitboard_from_bitboard(this.bitBoard);
@@ -268,16 +142,15 @@ public class Tutorial implements Runnable {
                         Thread.sleep(100);
                     } catch (InterruptedException ignored) {
                     }
-                    while (!JavaRenderer.position.allOnGround())
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                        }
+                while (!JavaRenderer.position.allOnGround())
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ignored) {
+                    }
                 if (JavaRenderer.position.end_game != Position.WHITE_WINS) {
                     JavaRenderer.position = Position.make_position_from_position(position);
                     JOptionPane.showMessageDialog(null, "Неправильно! Попробуйте снова", "Туториал к игре", JOptionPane.PLAIN_MESSAGE);
-                }
-                else return;
+                } else return;
             }
         }
 
