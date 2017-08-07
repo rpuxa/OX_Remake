@@ -4,9 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
 
-import Engine.Mask;
 import com.jogamp.opengl.awt.GLCanvas;
 
 
@@ -17,7 +15,6 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
     private static int button = 0;
     private static Double mouse_start_angle;
     private static GLCanvas canvas = new GLCanvas();
-    public static boolean textBox_active = false;
     private static final double pi = 3.141592;
 
     public void run() {
@@ -54,8 +51,6 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
     }
 
     public void keyPressed(KeyEvent e) {
-        int keyPressed = e.getKeyCode();
-
     }
 
     public void keyReleased(KeyEvent e) {
