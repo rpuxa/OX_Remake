@@ -45,11 +45,11 @@ public class Tutorial implements Runnable {
                     , 1, 0b1_00000000_00100000_00000100_00000001_00000000_00000001L, 4297065504L);
             new Stage("Отлично! Но чтобы победить в игре в с сильным противником\n нужно уметь создавать двойные угрозы (узлы), от которых нельзя защитиься\nЗадача:\nНайдите победу в 2 хода создав узел"
                     , 2, 8274L, 7169L);
-            Menu.back.visible = false;
-            canMove = false;
+            Menu.back.visible = true;
             new Stage(COMPLETE
                     , 2, 36912L, 2626L);
             new Stage("Вы изучили все основы игры!\nНажмите кнопку \"<-back\" и \"New Game\",\nчтобы попробовать сразиться с компьютером.");
+            canMove = false;
         } catch (InterruptedException ignored) {
         }
     }
@@ -104,13 +104,13 @@ public class Tutorial implements Runnable {
             this.action = action;
             bitBoard = new BitBoard(white, black);
             position = Position.make_position_from_bitboard(bitBoard);
-            JavaRenderer.position = Position.make_position_from_position(position);
             start();
         }
 
         void start() {
-            JOptionPane.showMessageDialog(null, text, "Туториал к игре", JOptionPane.PLAIN_MESSAGE);
-            makeMove(action);
+            JOptionPane.showConfirmDialog(null, text, "Туториал к игре", JOptionPane.PLAIN_MESSAGE, JOptionPane.CLOSED_OPTION);
+            if (action > 0)
+                makeMove(action);
         }
 
 
@@ -149,12 +149,10 @@ public class Tutorial implements Runnable {
                         Thread.sleep(100);
                     } catch (InterruptedException ignored) {
                     }
-                if (JavaRenderer.position.end_game != Position.WHITE_WINS) {
-                    JavaRenderer.position = Position.make_position_from_position(position);
-                    JOptionPane.showMessageDialog(null, "Неправильно! Попробуйте снова", "Туториал к игре", JOptionPane.PLAIN_MESSAGE);
-                } else return;
+                if (JavaRenderer.position.end_game != Position.WHITE_WINS)
+                    JOptionPane.showConfirmDialog(null, "Неправильно! Попробуйте снова", "Туториал к игре", JOptionPane.PLAIN_MESSAGE, JOptionPane.CLOSED_OPTION);
+                else return;
             }
         }
-
     }
 }
