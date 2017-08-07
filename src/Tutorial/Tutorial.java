@@ -14,7 +14,7 @@ public class Tutorial implements Runnable {
 
     public static boolean canMove = false;
 
-    static final String COMPLETE = "Задача решена!";
+    private static final String COMPLETE = "Задача решена!";
 
     @Override
     public void run() {
@@ -45,6 +45,8 @@ public class Tutorial implements Runnable {
                     , 1, 0b1_00000000_00100000_00000100_00000001_00000000_00000001L, 4297065504L);
             new Stage("Отлично! Но чтобы победить в игре в с сильным противником\n нужно уметь создавать двойные угрозы (узлы), от которых нельзя защитиься\nЗадача:\nНайдите победу в 2 хода создав узел"
                     , 2, 8274L, 7169L);
+            Menu.back.visible = false;
+            canMove = false;
             new Stage(COMPLETE
                     , 2, 36912L, 2626L);
             new Stage("Вы изучили все основы игры!\nНажмите кнопку \"<-back\" и \"New Game\",\nчтобы попробовать сразиться с компьютером.");
