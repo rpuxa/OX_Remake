@@ -7,8 +7,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.DataOutputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
 import java.util.Objects;
 
 public class Chat extends JFrame {
@@ -17,7 +15,7 @@ public class Chat extends JFrame {
     private JTextArea textMessage;
     private static final String ENTER_MESSAGE = "Введите сообщение...";
     public static String myNick;
-    private String opponentNick;
+    public String opponentNick;
     private Boolean lastMessageFromOpponent = null;
 
     Chat(DataOutputStream out) {
@@ -26,15 +24,15 @@ public class Chat extends JFrame {
 
         JPanel contents = new JPanel();
 
-        textChat = new JTextArea("",19,16);
+        textChat = new JTextArea("", 19, 16);
         textChat.setLineWrap(true);
         textChat.setEnabled(false);
-        textChat.setFont(new Font(Font.DIALOG,Font.PLAIN,17));
+        textChat.setFont(new Font(Font.DIALOG, Font.PLAIN, 17));
         JScrollPane pane1 = new JScrollPane(textChat);
-        textMessage = new JTextArea(ENTER_MESSAGE,3,20);
+        textMessage = new JTextArea(ENTER_MESSAGE, 3, 20);
         textMessage.setLineWrap(true);
         textMessage.setEnabled(false);
-        textChat.setDisabledTextColor(new Color(0,0,0));
+        textChat.setDisabledTextColor(new Color(0, 0, 0));
         textMessage.setDisabledTextColor(new Color(131, 131, 131));
         textMessage.setForeground(new Color(131, 131, 131));
         textMessage.addCaretListener(e -> {
@@ -69,10 +67,10 @@ public class Chat extends JFrame {
             public void keyReleased(KeyEvent e) {
             }
         });
+
         textMessage.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
-
             }
 
             @Override
@@ -85,7 +83,7 @@ public class Chat extends JFrame {
             }
         });
 
-        textMessage.addMouseListener(new MouseListener() {
+        this.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
 
@@ -134,25 +132,15 @@ public class Chat extends JFrame {
 
     @Override
     public void setLocation(Point point) {
-        super.setLocation((int) (JavaDia.frame.getWidth() - getWidth() + point.getX())-7, (int)(JavaDia.frame.getHeight() - getHeight()+point.getY())-8);
+        super.setLocation((int) (JavaDia.frame.getWidth() - getWidth() + point.getX()) - 7, (int) (JavaDia.frame.getHeight() - getHeight() + point.getY()) - 8);
     }
 
     void setOpponentNick(String nick) {
         this.opponentNick = nick;
     }
 
-    void showMessage(String massage){
+    void showMessage(String massage) {
         textChat.append(((lastMessageFromOpponent == null || !lastMessageFromOpponent) ? opponentNick + ":\n" : "") + massage);
         lastMessageFromOpponent = true;
-    }
-
-    static public void setMyNick(String nick){
-        if (myNick == null){
-            myNick = nick;
-            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("Config/nick"))) {
-                oos.writeObject(nick);
-            } catch (Exception ignore) {
-            }
-        }
     }
 }

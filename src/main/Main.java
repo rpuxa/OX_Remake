@@ -42,9 +42,5 @@ public class Main {
         } catch (IOException e) {
             System.out.println("Не удалось загрузить config файл");
         }
-        try (ObjectInputStream oin = new ObjectInputStream(new FileInputStream("Config/nick"))){
-            Chat.myNick = (String) oin.readObject();
-        } catch (Exception ignored){
-        }
     }
 }

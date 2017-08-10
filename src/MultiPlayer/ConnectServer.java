@@ -9,7 +9,6 @@ import javax.swing.*;
 
 import static Jogl.Menu.massage;
 
-import java.awt.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -27,7 +26,8 @@ public class ConnectServer implements Runnable {
     private final static String LOST_CONNECTION = "lost";
     private final static String CHECK_CONNECTION = "chck";
     final static String CHAT_MESSAGE = "chat";
-    private final static String SET_NICK = "nick";
+    private final static String SET_OPPONENT_NICK = "sonk";
+    private final static String SET_YOUR_NICK = "synk";
     private final static String SEND_MOVE = "move";
     private final static String RESIGN = "rsgn";
     private final static String OFFER_DRAW = "ofdr";
@@ -35,6 +35,7 @@ public class ConnectServer implements Runnable {
     private final static String REMATCH_WHITE = REMATCH+"w";
     private final static String REMATCH_BLACK = REMATCH+"b";
     private final static String ACCEPT_DRAW = "acdr";
+    private static final String ENTER_YOUR_NICK = "eynk";
     public static Thread moveListener = new Thread();
     public static Chat chat;
     public static DataOutputStream out;
@@ -86,10 +87,16 @@ public class ConnectServer implements Runnable {
                         case CHECK_CONNECTION: {
                             break;
                         }
-                        case SET_NICK: {
+                        case SET_OPPONENT_NICK: {
                             chat.setOpponentNick(server_command.substring(4));
                             break;
                         }
+
+                        case SET_YOUR_NICK: {
+                            Chat.myNick = server_command.substring(4);
+                            break;
+                        }
+
                         case CHAT_MESSAGE: {
                             chat.showMessage(server_command.substring(4));
                             Menu.sounds("message");
@@ -125,9 +132,6 @@ public class ConnectServer implements Runnable {
                         }
                         case ACCEPT_DRAW: {
                             endGame();
-                            Menu.resign.visible = true;
-                            Menu.offer.visible = true;
-                            Menu.rematch.visible = false;
                             UIManager.put("OptionPane.okButtonText", "ОК");
                             JOptionPane.showConfirmDialog(null, "Ваш оппонент согласился на ничью", "Сетевая игра", JOptionPane.PLAIN_MESSAGE, JOptionPane.CLOSED_OPTION);
                             break;
@@ -155,6 +159,20 @@ public class ConnectServer implements Runnable {
                             }
                             break;
                         }
+
+                        case ENTER_YOUR_NICK:{
+                            UIManager.put("OptionPane.okButtonText"    , "Готово");
+                            UIManager.put("OptionPane.cancelButtonText", "Выйти");
+                            String nick = JOptionPane.showInputDialog(null,"Введите ваш ник (только ЛАТИНСКИМИ буквами и/или знаками)");
+                            if (nick == null)
+                                new Thread(() -> Menu.back.click()).start();
+                            else {
+                                Chat.myNick = nick;
+                                out.writeUTF(nick);
+                                out.flush();
+                            }
+                            break;
+                        }
                     }
                 } catch (IOException e) {
                     massage = "Lost connection with server.";
@@ -176,7 +194,6 @@ public class ConnectServer implements Runnable {
         moveListener.start();
         if (chat == null)
             chat = new Chat(out);
-        out.writeUTF(SET_NICK + Chat.myNick);
         Menu.sounds("begin_game");
         Menu.resign.visible = true;
         Menu.offer.visible = true;

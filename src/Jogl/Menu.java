@@ -16,6 +16,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import static MultiPlayer.ConnectServer.chat;
+
 public class Menu {
 
     static int[] textures = new int[22];
@@ -98,17 +100,9 @@ public class Menu {
         multiplayer = new Button(MULTIPLAYER, textures[MULTIPLAYER], -.875, .6, 0.2, 78.0 / 200, true) {
             @Override
             public void click() {
-                UIManager.put("OptionPane.okButtonText"    , "Готово");
-                UIManager.put("OptionPane.cancelButtonText", "Отмена");
-                String nick = "NotNull";
-                if (Chat.myNick == null)
-                    nick = JOptionPane.showInputDialog(null,"Введите ваш ник");
-                if (nick != null) {
                     interrupt();
                     multi = new Thread(new ConnectServer());
                     multi.start();
-                    Chat.setMyNick(nick);
-                }
             }
         };
 
@@ -157,8 +151,11 @@ public class Menu {
                 change.visible = true;
                 tutorial_button.visible = true;
                 massage = null;
-                ConnectServer.chat.setVisible(false);
-                ConnectServer.chat = null;
+                try {
+                    chat.setVisible(false);
+                    chat = null;
+                } catch (NullPointerException ignore){
+                }
                 JavaRenderer.position = Position.make_position_from_position(JavaRenderer.start_position);
                 JavaRenderer.history_positions.clear();
             }
@@ -342,9 +339,9 @@ public class Menu {
         rematch.display();
         offer.display();
 
-        if (changingPos){
-            printStr("Next Move:",-.98,.55,true);
-            printStr("Color you play:",-.98,.25,true);
+        if (changingPos) {
+            printStr("Next Move:", -.98, .55, true);
+            printStr("Color you play:", -.98, .25, true);
         }
 
         if (JavaRenderer.position.allOnGround()) {
@@ -358,13 +355,27 @@ public class Menu {
         if (thinking)
             square(textures[WAIT], 0.36, -0.77, .75, -1);
 
-            printStr(massage, -.72, -.97);
+        printStr(massage, -.72, -.97);
 
-        if (show_turn) {
-            String side = (JavaRenderer.position.human_plays_for_white) ? "white" : "black";
-            String turn = (JavaRenderer.position.isTurnWhite) ? "white" : "black";
-            printStr("Turn: " + turn, -.72, .95);
-            printStr("You are playing for : " + side, -.72, .90);
+        try {
+            if (show_turn) {
+                String move_white = (!JavaRenderer.position.isTurnWhite) ? "" : " - moves";
+                String move_black = (JavaRenderer.position.isTurnWhite) ? "" : " - moves";
+                String white, black;
+                if (ConnectServer.moveListener.isAlive()) {
+                    white = (JavaRenderer.position.human_plays_for_white) ? Chat.myNick : chat.opponentNick;
+                    black = (!JavaRenderer.position.human_plays_for_white) ? Chat.myNick : chat.opponentNick;
+                    System.out.println(white + " " + black);
+                } else {
+                    String comp = "OX3DGameEngine";
+                    white = (JavaRenderer.position.human_plays_for_white) ? "You" : comp;
+                    black = (!JavaRenderer.position.human_plays_for_white) ? "You" : comp;
+                }
+                printStr("white: " + white + ((JavaRenderer.position.end_game != Position.WHITE_WINS) ? move_white : " - wins!"), -.72, .95);
+                printStr("   vs", -.72, .90);
+                printStr("black: " + black + (((JavaRenderer.position.end_game != Position.BLACK_WINS)) ? move_black : " - wins!"), -.72, .85);
+            }
+        } catch (NullPointerException ignore) {
         }
     }
 
