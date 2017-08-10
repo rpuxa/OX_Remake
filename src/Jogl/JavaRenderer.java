@@ -1,6 +1,7 @@
 package Jogl;
 
 import Engine.Mask;
+import MultiPlayer.ConnectServer;
 import Tutorial.Tutorial;
 import Utils.BitUtils;
 import com.jogamp.opengl.GL2;
@@ -14,6 +15,7 @@ import javafx.geometry.Point3D;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import static com.jogamp.opengl.GL.GL_VIEWPORT;
 import static com.jogamp.opengl.fixedfunc.GLMatrixFunc.GL_MODELVIEW_MATRIX;
@@ -31,8 +33,10 @@ public class JavaRenderer implements GLEventListener {
     public static double AbsAngleX;
     static double AbsAngleY;
     public static double AbsAngleZ;
-    private static boolean human_plays_for_white = false;
+    private static boolean human_plays_for_white = true;
     private static boolean isTurnWhite = true;
+    static int moveNumber = 0;
+    static ArrayList<Position> history_positions = new ArrayList<>();
     public static Position start_position = Position.make_position_empty(human_plays_for_white, isTurnWhite);
     public static Position position = Position.make_position_from_position(start_position);
     static Double mouse_at[];
@@ -85,7 +89,7 @@ public class JavaRenderer implements GLEventListener {
         column_select = null;
 
         if (mouse_at != null &&
-                position.end_game == 0 && (Menu.analyze.isAlive() || Menu.white.visible || ((Menu.play.isAlive() || Menu.multi.isAlive() || Tutorial.canMove) && position.human_plays_for_white == position.isTurnWhite))) {
+                position.end_game == 0 && (Menu.analyze.isAlive() || Menu.white.visible || ((Menu.play.isAlive() || ConnectServer.moveListener.isAlive() || Tutorial.canMove) && position.human_plays_for_white == position.isTurnWhite))) {
             int viewport[] = new int[4];
             float projection[] = new float[16];
             float modelView[] = new float[16];
@@ -129,6 +133,7 @@ public class JavaRenderer implements GLEventListener {
                 if (ball.z - ball.speed <= -0.15 + 0.3 * count_columns[ball.getColumn()]) {
                     ball.onGround = true;
                     ball.z = (float) (-0.15 + 0.3 * count_columns[ball.getColumn()]);
+                    Menu.sounds("move");
                 } else {
                     ball.z -= ball.speed;
                 }
@@ -409,7 +414,8 @@ public class JavaRenderer implements GLEventListener {
         gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL2.GL_NICEST);
         gl.glEnable(GL2.GL_TEXTURE_2D);
         try {
-            String[] names = {"NewGame", "fon", "Analyze", "MultiPlayer", "Change", "Exit", "Back", "White", "Black", "BlackWins", "WhiteWins", "Draw", "wait","Tutorial"};
+            String[] names = {"NewGame", "fon", "Analyze", "MultiPlayer", "Change", "Exit", "Back", "White", "Black", "BlackWins", "WhiteWins", "Draw", "wait"
+                    ,"Tutorial","radio_on","radio_off","arrow_right","arrow_left","resign","offer","rematch"};
             int type = 1;
             for (String name : names) {
                 File im = new File("Images/" + name + ".png");

@@ -43,5 +43,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="windows-i5862" level="project" />
   </component>
 </module>

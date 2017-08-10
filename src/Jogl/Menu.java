@@ -4,6 +4,7 @@ import ChangePosition.Change;
 import Engine.Ai;
 import Engine.Analyze;
 import Engine.Play;
+import MultiPlayer.Chat;
 import MultiPlayer.ConnectServer;
 import Tutorial.Tutorial;
 import com.jogamp.opengl.GL2;
@@ -17,7 +18,7 @@ import java.util.ArrayList;
 
 public class Menu {
 
-    static int[] textures = new int[15];
+    static int[] textures = new int[22];
 
     private static final int NEW_GAME = 1;
     private static final int FON = 2;
@@ -33,10 +34,19 @@ public class Menu {
     private static final int DRAW = 12;
     private static final int WAIT = 13;
     private static final int TUTORIAL = 14;
+    private static final int RADIO_BUTTON_ON = 15;
+    private static final int RADIO_BUTTON_OFF = 16;
+    private static final int ARROW_RIGHT = 17;
+    private static final int ARROW_LEFT = 18;
+    private static final int RESIGN = 19;
+    private static final int OFFER_DRAW = 20;
+    private static final int REMATCH = 21;
+
 
     private static GL2 gl;
     public static boolean thinking = false;
     public static boolean show_turn = false;
+    private static boolean changingPos = false;
     private static Button new_game;
     private static Button analyze_button;
     private static Button multiplayer;
@@ -46,11 +56,19 @@ public class Menu {
     public static Button back;
     private static Button exit;
     private static Button tutorial_button;
-    // public static TextBox chat;
+    private static Button arrow_back;
+    private static Button arrow_forward;
+    public static Button resign;
+    public static Button offer;
+    public static Button rematch;
+    private static RadioButton color_play_white;
+    private static RadioButton color_move_white;
+    private static RadioButton color_play_black;
+    private static RadioButton color_move_black;
     static Thread play = new Thread();
     static Thread analyze = new Thread();
     private static Thread replace = new Thread();
-    static Thread multi = new Thread();
+    private static Thread multi = new Thread();
     private static Thread tutorial = new Thread();
     public static boolean isInterrupted = false;
     public static String massage;
@@ -70,6 +88,8 @@ public class Menu {
             @Override
             public void click() {
                 interrupt();
+                arrow_back.visible = true;
+                arrow_forward.visible = true;
                 analyze = new Thread(new Analyze());
                 analyze.start();
             }
@@ -78,9 +98,17 @@ public class Menu {
         multiplayer = new Button(MULTIPLAYER, textures[MULTIPLAYER], -.875, .6, 0.2, 78.0 / 200, true) {
             @Override
             public void click() {
-                interrupt();
-                multi = new Thread(new ConnectServer());
-                multi.start();
+                UIManager.put("OptionPane.okButtonText"    , "Готово");
+                UIManager.put("OptionPane.cancelButtonText", "Отмена");
+                String nick = "NotNull";
+                if (Chat.myNick == null)
+                    nick = JOptionPane.showInputDialog(null,"Введите ваш ник");
+                if (nick != null) {
+                    interrupt();
+                    multi = new Thread(new ConnectServer());
+                    multi.start();
+                    Chat.setMyNick(nick);
+                }
             }
         };
 
@@ -88,6 +116,13 @@ public class Menu {
             @Override
             public void click() {
                 interrupt();
+                arrow_back.visible = true;
+                arrow_forward.visible = true;
+                changingPos = true;
+                color_move_white.visible = true;
+                color_move_black.visible = true;
+                color_play_white.visible = true;
+                color_play_black.visible = true;
                 white.visible = true;
                 black.visible = true;
                 JavaRenderer.speed = 1;
@@ -122,7 +157,10 @@ public class Menu {
                 change.visible = true;
                 tutorial_button.visible = true;
                 massage = null;
+                ConnectServer.chat.setVisible(false);
+                ConnectServer.chat = null;
                 JavaRenderer.position = Position.make_position_from_position(JavaRenderer.start_position);
+                JavaRenderer.history_positions.clear();
             }
         };
 
@@ -139,7 +177,9 @@ public class Menu {
 
             @Override
             public void click() {
-                if (JOptionPane.showConfirmDialog(null,"Хотите начать туториал по игре?","Туториал к игре",JOptionPane.YES_NO_OPTION,JOptionPane.PLAIN_MESSAGE) == JOptionPane.YES_OPTION) {
+                UIManager.put("OptionPane.yesButtonText"   , "Да"    );
+                UIManager.put("OptionPane.noButtonText"    , "Нет"   );
+                if (JOptionPane.showConfirmDialog(null, "Хотите начать туториал по игре?", "Туториал к игре", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.YES_OPTION) {
                     interrupt();
                     back.visible = false;
                     tutorial = new Thread(new Tutorial());
@@ -147,13 +187,115 @@ public class Menu {
                 }
             }
         };
+
+        color_move_white = new RadioButton(-.98,.5,true,false,0,"white") {
+            @Override
+            void click() {
+                JavaRenderer.position.isTurnWhite = true;
+            }
+        };
+
+        color_move_black = new RadioButton(-.98,.4,false,false,0,"black") {
+            @Override
+            void click() {
+                JavaRenderer.position.isTurnWhite = false;
+            }
+        };
+
+        color_play_white = new RadioButton(-.98,.2,true,false,1,"white") {
+            @Override
+            void click() {
+                JavaRenderer.position.human_plays_for_white = true;
+            }
+        };
+
+        color_play_black = new RadioButton(-.98,.1,false,false,1,"black") {
+            @Override
+            void click() {
+                JavaRenderer.position.human_plays_for_white = false;
+            }
+        };
+
+        arrow_forward = new Button(ARROW_RIGHT, textures[ARROW_RIGHT], -.775, -.5, 0.095, 1.0/1.68, false) {
+
+            @Override
+            public void click() {
+                try {
+                    JavaRenderer.position = Position.make_position_from_position(JavaRenderer.history_positions.get(JavaRenderer.moveNumber + 1));
+                    JavaRenderer.moveNumber++;
+                } catch (Exception ignore){
+                }
+
+            }
+        };
+
+        arrow_back = new Button(ARROW_LEFT, textures[ARROW_LEFT], -.975, -.5, 0.095, 1.0/1.68, false) {
+
+            @Override
+            public void click() {
+                try {
+                    JavaRenderer.position = Position.make_position_from_position(JavaRenderer.history_positions.get(JavaRenderer.moveNumber - 1));
+                    JavaRenderer.moveNumber--;
+                } catch (Exception ignore){
+                }
+
+            }
+        };
+
+        resign = new Button(RESIGN, textures[RESIGN], -.875, .8, 0.2, 78.0 / 200, false) {
+            @Override
+            public void click() {
+                UIManager.put("OptionPane.yesButtonText"   , "Сдаться"    );
+                UIManager.put("OptionPane.noButtonText"    , "Продолжить игру"   );
+                if (JOptionPane.showConfirmDialog(null, "Вы точно хотите сдаться?", "Сетевая игра", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.YES_OPTION) {
+                    ConnectServer.resign();
+                }
+            }
+        };
+
+        offer = new Button(OFFER_DRAW, textures[OFFER_DRAW], -.875, .7, 0.2, 78.0 / 200, false) {
+            @Override
+            public void click() {
+                UIManager.put("OptionPane.yesButtonText"   , "Предложить ничью"    );
+                UIManager.put("OptionPane.noButtonText"    , "Продолжить игру"   );
+                if (JOptionPane.showConfirmDialog(null, "Вы хотите предложить ничью?", "Сетевая игра", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.YES_OPTION) {
+                    ConnectServer.offer();
+                }
+            }
+        };
+
+        rematch = new Button(REMATCH, textures[REMATCH], -.875, .8, 0.2, 78.0 / 200, false) {
+            @Override
+            public void click() {
+                UIManager.put("OptionPane.yesButtonText", "Белых");
+                UIManager.put("OptionPane.noButtonText", "Черных");
+                UIManager.put("OptionPane.cancelButtonText", "Отмена");
+                final int a = JOptionPane.showConfirmDialog(null, "Вы предлагаете реванш за", "Сетевая игра", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                if (a == JOptionPane.YES_OPTION)
+                    ConnectServer.rematch(true);
+                if (a == JOptionPane.NO_OPTION)
+                    ConnectServer.rematch(false);
+            }
+        };
     }
 
     private static void interrupt() {
+        ConnectServer.isEndGame = false;
+        rematch.visible = false;
+        resign.visible = false;
+        offer.visible = false;
         show_turn = false;
+        arrow_back.visible = false;
+        arrow_forward.visible = false;
         white.visible = false;
         black.visible = false;
-        while (analyze.isAlive() || play.isAlive() || multi.isAlive() || replace.isAlive() || tutorial.isAlive()) {
+        changingPos = false;
+        try {
+            ConnectServer.in.close();
+            ConnectServer.out.close();
+        } catch (Exception ignore){
+        }
+        while (analyze.isAlive() || play.isAlive() || multi.isAlive() || replace.isAlive() || tutorial.isAlive() || ConnectServer.moveListener.isAlive()) {
             isInterrupted = true;
             try {
                 Thread.sleep(100);
@@ -171,34 +313,51 @@ public class Menu {
         change.visible = false;
         back.visible = true;
         tutorial_button.visible = false;
+        color_move_white.visible = false;
+        color_move_black.visible = false;
+        color_play_white.visible = false;
+        color_play_black.visible = false;
     }
 
     static void display(GL2 gl) {
         Menu.gl = gl;
         square(textures[FON], -1, 1, -0.75, -1);
         square(textures[FON], 1, 1, 0.75, -1);
-            new_game.display();
-            analyze_button.display();
-            multiplayer.display();
-            change.display();
-            back.display();
-            white.display();
-            black.display();
-            exit.display();
-            tutorial_button.display();
+        new_game.display();
+        analyze_button.display();
+        multiplayer.display();
+        change.display();
+        back.display();
+        white.display();
+        black.display();
+        exit.display();
+        tutorial_button.display();
+        color_move_black.display();
+        color_play_black.display();
+        color_play_white.display();
+        color_move_white.display();
+        arrow_back.display();
+        arrow_forward.display();
+        resign.display();
+        rematch.display();
+        offer.display();
 
-            if (JavaRenderer.position.allOnGround()) {
-                if (JavaRenderer.position.end_game == Position.WHITE_WINS)
-                    square(textures[WHITE_WINS], .4, 1, 0.75, .9);
-                else if (JavaRenderer.position.end_game == Position.BLACK_WINS)
-                    square(textures[BLACK_WINS], .4, 1, 0.75, .9);
-                else if (JavaRenderer.position.end_game == Position.DRAW)
-                    square(textures[DRAW], .4, 1, 0.75, .9);
-            }
+        if (changingPos){
+            printStr("Next Move:",-.98,.55,true);
+            printStr("Color you play:",-.98,.25,true);
+        }
+
+        if (JavaRenderer.position.allOnGround()) {
+            if (JavaRenderer.position.end_game == Position.WHITE_WINS)
+                square(textures[WHITE_WINS], .4, 1, 0.75, .9);
+            else if (JavaRenderer.position.end_game == Position.BLACK_WINS)
+                square(textures[BLACK_WINS], .4, 1, 0.75, .9);
+            else if (JavaRenderer.position.end_game == Position.DRAW)
+                square(textures[DRAW], .4, 1, 0.75, .9);
+        }
         if (thinking)
             square(textures[WAIT], 0.36, -0.77, .75, -1);
 
-        if (massage != null)
             printStr(massage, -.72, -.97);
 
         if (show_turn) {
@@ -209,16 +368,24 @@ public class Menu {
         }
     }
 
-    static void printStr(String str, double x, double y){
-        gl.glRasterPos2d(x,y);
-        gl.glColor3f(1,1,1);
-        for (int i = 0; i < str.length(); i++)
-            new GLUT().glutBitmapCharacter(GLUT.BITMAP_TIMES_ROMAN_24, str.charAt(i));
+    static void printStr(String str, double x, double y) {
+        printStr(str,x,y,false);
+    }
+    static void printStr(String str, double x, double y, boolean black) {
+        if (black)
+            gl.glColor3f(0, 0, 0);
+        else
+            gl.glColor3f(1, 1, 1);
+        if (str != null) {
+            gl.glRasterPos2d(x, y);
+            for (int i = 0; i < str.length(); i++)
+                new GLUT().glutBitmapCharacter(GLUT.BITMAP_TIMES_ROMAN_24, str.charAt(i));
+        }
     }
 
-    static void sounds(String sound){
+    public static void sounds(String sound) {
         try {
-            File soundFile = new File(sound);
+            File soundFile = new File("Sounds/" + sound + ".wav");
             AudioInputStream ais = AudioSystem.getAudioInputStream(soundFile);
             Clip clip = AudioSystem.getClip();
             clip.open(ais);
@@ -231,8 +398,8 @@ public class Menu {
 
     static void square(int texture, double x1, double y1, double x2, double y2) {
         gl.glEnable(GL2.GL_TEXTURE_2D);
-        gl.glColor3f(1, 1, 1);
         gl.glBindTexture(GL2.GL_TEXTURE_2D, texture);
+        gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_REPLACE);
         gl.glBegin(GL2.GL_QUADS);
         gl.glTexCoord2f(0.0f, 1.0f);
         gl.glVertex2d(x1, y1);
@@ -282,7 +449,7 @@ public class Menu {
                         else
                             Menu.square(texture, xc + (zoom_hover * (x1 - xc)), yc + (zoom_hover * (y1 - yc)), xc + (zoom_hover * (x2 - xc)), yc + (zoom_hover * (y2 - yc)));
                         if (JavaRenderer.mouse_click != null && JavaRenderer.mouse_click[0] >= x1 && JavaRenderer.mouse_click[0] <= x2 && JavaRenderer.mouse_click[1] <= y1 && JavaRenderer.mouse_click[1] >= y2) {
-                            sounds("Sounds/click.wav");
+                            sounds("click");
                             JavaRenderer.mouse_click = null;
                             click();
                         }
@@ -298,49 +465,53 @@ public class Menu {
         public abstract void click();
     }
 
-   public static class TextBox {
-        double x1;
-        double y1;
-        double x2;
-        double y2;
-        String text = "";
-        boolean writable;
-        boolean slider_visible;
-        double slider_position = 0;
+    private abstract static class RadioButton {
+        double x;
+        double y;
         boolean active;
-        boolean updated = false;
+        boolean visible;
+        int family;
+        String text;
 
-        private ArrayList<String> strings = new ArrayList<>();
-        private double width = Math.abs(x1-x2);
-        private double height = Math.abs(y1-y2);
+       private static ArrayList<RadioButton> radioButtons = new ArrayList<>();
 
-        TextBox(double x1, double y1, double x2, double y2, boolean writable, boolean slider_visible) {
-            this.x1 = x1;
-            this.y1 = y1;
-            this.x2 = x2;
-            this.y2 = y2;
-            this.writable = writable;
-            this.slider_visible = slider_visible;
+        RadioButton(double x, double y, boolean activate, boolean visible, int family, String text) {
+            this.x = x;
+            this.y = y;
+            this.active = activate;
+            this.visible = visible;
+            this.family = family;
+            this.text = text;
+            radioButtons.add(this);
         }
 
-        private static final double letter_size = 0.01;
-
-        void display(){
-            double mouse_x = JavaRenderer.mouse_at[0];
-            double mouse_y = JavaRenderer.mouse_at[1];
-
-            if (updated){
-                ArrayList<String> words = new ArrayList<>();
-                words.add("");
-                for (char c : text.toCharArray())
-                    if (c == ' ')
-                        words.add("");
-                     else
-                        words.add(words.size() - 1,words.get(words.size() - 1) + c);
-
+        void display() {
+            double size = .02;
+            if (visible) {
+                gl.glEnable(GL2.GL_ALPHA_TEST);
+                gl.glAlphaFunc(GL2.GL_GREATER, 0.8f);
+                if (active)
+                    square(textures[RADIO_BUTTON_ON], x + size, y + size, x - size, y - size);
+                else
+                    square(textures[RADIO_BUTTON_OFF], x + size, y + size, x - size, y - size);
+                gl.glDisable(GL2.GL_ALPHA_TEST);
+                printStr(text,x+size+.01,y-size,true);
+                if (JavaRenderer.mouse_click != null && JavaRenderer.mouse_click[0] >= x - size && JavaRenderer.mouse_click[0] <= x + size && JavaRenderer.mouse_click[1] <= y + size && JavaRenderer.mouse_click[1] >= y - size) {
+                    sounds("click");
+                    JavaRenderer.mouse_click = null;
+                    activate();
+                    click();
+                }
             }
-
-
         }
+
+        void activate() {
+            for (RadioButton button : radioButtons)
+                if (button.family == family)
+                    button.active = false;
+            active = true;
+        }
+
+        abstract void click();
     }
 }

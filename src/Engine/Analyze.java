@@ -3,6 +3,7 @@ package Engine;
 import Jogl.Ball;
 import Jogl.JavaRenderer;
 import Jogl.Menu;
+import Jogl.Position;
 
 class AnalyzePosition implements Runnable {
         @Override
@@ -31,6 +32,7 @@ public class Analyze implements Runnable {
 
     @Override
     public void run() {
+        JavaRenderer.position = Position.make_position_from_position(JavaRenderer.start_position);
         analyze_interrupt = false;
         Thread analyzePosition = new Thread(new AnalyzePosition());
         BitBoard bitBoard = BitBoard.make_bitboard_from_bitboard(JavaRenderer.position.bitBoard);
@@ -64,6 +66,7 @@ public class Analyze implements Runnable {
             JavaRenderer.position.human_plays_for_white = !JavaRenderer.position.human_plays_for_white;
             isTurnWhite = !isTurnWhite;
             JavaRenderer.position.bitBoard = BitBoard.make_bitboard_from_bitboard(bitBoard);
+            Position.add_to_history_positions(JavaRenderer.position);
             JavaRenderer.analyzed_column = null;
 
             analyzePosition = new Thread(new AnalyzePosition());

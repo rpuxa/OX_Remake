@@ -39,6 +39,13 @@ public class Position {
         return new Position(BitBoard.make_bitboard_from_bitboard(position.bitBoard),position.human_plays_for_white,position.end_game,new ArrayList<>(position.balls),position.isTurnWhite, position.mask);
     }
 
+    public static void add_to_history_positions(Position position){
+        for (int i = JavaRenderer.history_positions.size()-1; i > JavaRenderer.moveNumber; i--)
+            JavaRenderer.history_positions.remove(i);
+        JavaRenderer.history_positions.add(Position.make_position_from_position(position));
+        JavaRenderer.moveNumber++;
+    }
+
     private static ArrayList<Ball> make_balls_from_bitboard(BitBoard bitBoard){
         ArrayList<Ball> balls = new ArrayList<>();
         for (int i = 0; i < 64; i++)

@@ -15,6 +15,7 @@ public class Change implements Runnable {
     public void run() {
         JavaRenderer.position = Position.make_position_from_position(JavaRenderer.start_position);
         BitBoard bitBoard = BitBoard.make_bitboard_from_bitboard(JavaRenderer.position.bitBoard);
+        Position.add_to_history_positions(JavaRenderer.position);
         while (true){
             while (JavaRenderer.column_chosen == null) {
                 if (Menu.isInterrupted) {
@@ -35,6 +36,8 @@ public class Change implements Runnable {
 
             if (Play.checkEnd(bitBoard))
                 return;
+            
+            Position.add_to_history_positions(JavaRenderer.position);
         }
     }
 }

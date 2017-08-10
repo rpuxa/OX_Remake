@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="windows-i586">
+    <CLASSES />
+    <JAVADOC />
+    <NATIVE>
+      <root url="file://$PROJECT_DIR$/libs/natives/windows-i586" />
+    </NATIVE>
+    <SOURCES />
+  </library>
+</component>

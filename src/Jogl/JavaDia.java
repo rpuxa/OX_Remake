@@ -4,7 +4,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.io.DataInputStream;
 
+import MultiPlayer.Chat;
+import MultiPlayer.ConnectServer;
 import com.jogamp.opengl.awt.GLCanvas;
 
 
@@ -16,15 +19,33 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
     private static Double mouse_start_angle;
     private static GLCanvas canvas = new GLCanvas();
     private static final double pi = 3.141592;
+    public static Frame frame;
 
     public void run() {
-        Frame frame = new Frame("OX_OpenGL");
+        frame = new Frame("OX_OpenGL");
         int size = frame.getExtendedState();
         canvas.addGLEventListener(new JavaRenderer());
         frame.add(canvas);
         frame.setUndecorated(false);
         size |= Frame.MAXIMIZED_BOTH;
         frame.setExtendedState(size);
+        frame.addComponentListener(new ComponentListener() {
+            @Override
+            public void componentResized(ComponentEvent e) {}
+            @Override
+            public void componentMoved(ComponentEvent e) {
+                try{
+                    Point point = e.getComponent().getLocation();
+                    ConnectServer.chat.setLocation((int)(frame.getWidth() - ConnectServer.chat.getWidth() + point.getX()),(int)(frame.getHeight()-ConnectServer.chat.getHeight()+point.getY()));
+                    ConnectServer.chat.setAlwaysOnTop(true);
+                } catch (NullPointerException ignore){
+                }
+            }
+            @Override
+            public void componentShown(ComponentEvent e) {}
+            @Override
+            public void componentHidden(ComponentEvent e) {}
+        });
         canvas.addKeyListener(this);
         canvas.addMouseListener(this);
         canvas.addMouseMotionListener(this);
@@ -41,6 +62,7 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
 
         frame.setVisible(true);
         canvas.requestFocus();
+        frame.setMinimumSize(new Dimension(800,600));
         while( !bQuit ) {
             canvas.display();
             try {

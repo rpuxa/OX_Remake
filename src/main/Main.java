@@ -3,10 +3,13 @@ package main;
 import Engine.BitBoard;
 import Engine.Mask;
 import Jogl.JavaDia;
+import MultiPlayer.Chat;
 import MultiPlayer.ConnectServer;
 
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.InetAddress;
 
 
@@ -38,6 +41,10 @@ public class Main {
             ConnectServer.ipAddress = InetAddress.getByName(ip);
         } catch (IOException e) {
             System.out.println("Не удалось загрузить config файл");
+        }
+        try (ObjectInputStream oin = new ObjectInputStream(new FileInputStream("Config/nick"))){
+            Chat.myNick = (String) oin.readObject();
+        } catch (Exception ignored){
         }
     }
 }
