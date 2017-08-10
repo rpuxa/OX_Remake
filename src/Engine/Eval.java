@@ -4,8 +4,8 @@ import java.util.ArrayList;
 
 class Eval {
 
-    static long[] sides = new long[2];
-    static double log2 = Math.log(2);
+    private static long[] sides = new long[2];
+    private static double log2 = Math.log(2);
 
     static int evaluate(BitBoard bitBoard) {
 

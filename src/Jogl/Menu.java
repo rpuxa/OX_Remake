@@ -371,6 +371,7 @@ public class Menu {
     static void printStr(String str, double x, double y) {
         printStr(str,x,y,false);
     }
+
     static void printStr(String str, double x, double y, boolean black) {
         if (black)
             gl.glColor3f(0, 0, 0);
@@ -426,7 +427,7 @@ public class Menu {
         }
     }
 
-    private abstract static class Button_class {
+    public abstract static class Button_class {
         int name = 0;
         double x1 = 0;
         double y1 = 0;

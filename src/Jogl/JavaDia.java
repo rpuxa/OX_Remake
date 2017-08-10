@@ -4,11 +4,11 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.io.DataInputStream;
 
-import MultiPlayer.Chat;
 import MultiPlayer.ConnectServer;
 import com.jogamp.opengl.awt.GLCanvas;
+
+import static MultiPlayer.ConnectServer.chat;
 
 
 public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotionListener, MouseWheelListener {
@@ -31,13 +31,16 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
         frame.setExtendedState(size);
         frame.addComponentListener(new ComponentListener() {
             @Override
-            public void componentResized(ComponentEvent e) {}
+            public void componentResized(ComponentEvent e) {
+                try{
+                    chat.setLocation(JavaDia.frame.getLocation());
+                } catch (NullPointerException ignore){
+                }
+            }
             @Override
             public void componentMoved(ComponentEvent e) {
                 try{
-                    Point point = e.getComponent().getLocation();
-                    ConnectServer.chat.setLocation((int)(frame.getWidth() - ConnectServer.chat.getWidth() + point.getX()),(int)(frame.getHeight()-ConnectServer.chat.getHeight()+point.getY()));
-                    ConnectServer.chat.setAlwaysOnTop(true);
+                    chat.setLocation(JavaDia.frame.getLocation());
                 } catch (NullPointerException ignore){
                 }
             }

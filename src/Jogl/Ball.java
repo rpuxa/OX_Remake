@@ -6,7 +6,7 @@ public class Ball {
     float z;
     boolean onGround;
     double speed;
-    int column;
+    private int column;
     boolean white;
 
     public Ball(int column, boolean white){
@@ -19,7 +19,7 @@ public class Ball {
         this.white = white;
     }
 
-    public Ball(boolean white, int bit){
+    Ball(boolean white, int bit){
         this.column = bit % 16;
         x = -0.6f+0.4f*(3 - column%4);
         y = -0.6f+0.4f*(column/4);

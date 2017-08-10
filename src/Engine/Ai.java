@@ -108,7 +108,7 @@ public class Ai {
         history_moves.put(key, hash);
     }
 
-    private static int quies(BitBoard bitBoard, int depth, int alpha, int beta) {
+   /* private static int quies(BitBoard bitBoard, int depth, int alpha, int beta) {
         if (bitBoard.win(true)!=0)
             return 30000 - depth;
         if (bitBoard.win(false)!=0)
@@ -153,5 +153,5 @@ public class Ai {
             }
             return alpha;
         }
-    }
+    }*/
 }

@@ -80,6 +80,7 @@ public class ConnectServer implements Runnable {
                             Menu.offer.visible = false;
                             Menu.rematch.visible = false;
                             massage = "You opponent left.";
+                            chat.showMessage(massage);
                             return;
                         }
                         case CHECK_CONNECTION: {
@@ -180,9 +181,6 @@ public class ConnectServer implements Runnable {
         Menu.resign.visible = true;
         Menu.offer.visible = true;
         Menu.rematch.visible = false;
-        Point point = JavaDia.frame.getLocation();
-        ConnectServer.chat.setLocation((int)(JavaDia.frame.getWidth() - ConnectServer.chat.getWidth() + point.getX()),(int)(JavaDia.frame.getHeight()-ConnectServer.chat.getHeight()+point.getY()));
-        ConnectServer.chat.setAlwaysOnTop(true);
         new Thread(() -> {
             try {
                 Thread.sleep(5000);
