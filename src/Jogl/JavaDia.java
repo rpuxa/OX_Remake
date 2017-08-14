@@ -3,12 +3,13 @@ package Jogl;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
 
+import MultiPlayer.AudioChat.RecordVoice;
 import MultiPlayer.ConnectServer;
 import com.jogamp.opengl.awt.GLCanvas;
 
 import static MultiPlayer.ConnectServer.chat;
+import static MultiPlayer.ConnectServer.versus;
 
 
 public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotionListener, MouseWheelListener {
@@ -22,11 +23,10 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
     public static Frame frame;
 
     public void run() {
-        frame = new Frame("OX_OpenGL");
+        frame = new Frame("OX3D_OpenGL");
         int size = frame.getExtendedState();
         canvas.addGLEventListener(new JavaRenderer());
         frame.add(canvas);
-        frame.setUndecorated(false);
         size |= Frame.MAXIMIZED_BOTH;
         frame.setExtendedState(size);
         frame.addComponentListener(new ComponentListener() {
@@ -41,6 +41,11 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
             public void componentMoved(ComponentEvent e) {
                 try{
                     chat.setLocation(JavaDia.frame.getLocation());
+                } catch (NullPointerException ignore){
+                }
+
+                try{
+                    versus.setLocation(JavaDia.frame.getLocation());
                 } catch (NullPointerException ignore){
                 }
             }
@@ -66,19 +71,23 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
         frame.setVisible(true);
         canvas.requestFocus();
         frame.setMinimumSize(new Dimension(800,600));
+        Menu.screensaver = new Thread(new Screensaver());
+        Menu.screensaver.start();
         while( !bQuit ) {
             canvas.display();
-            try {
-                Thread.sleep(1000/30);
-            } catch (InterruptedException ignored) {
-            }
         }
     }
 
     public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_R && ConnectServer.opp_found) {
+            RecordVoice.pressed_R = true;
+            new Thread(RecordVoice::record).start();
+        }
     }
 
     public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_R)
+            RecordVoice.pressed_R = false;
     }
 
     public void keyTyped(KeyEvent e) {

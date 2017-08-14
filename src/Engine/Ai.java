@@ -14,7 +14,7 @@ public class Ai {
 
     public static Map<Long,int[]> history_moves = new HashMap<>();
 
-    int[] bfs(BitBoard bitBoard, int depth, boolean white){
+    public int[] bfs(BitBoard bitBoard, int depth, boolean white){
         int num[] = new int[2];
         for (int i = 2; i <= depth; i++) {
             num = alphaBetaStart(bitBoard,(white) ? 0:1,i);

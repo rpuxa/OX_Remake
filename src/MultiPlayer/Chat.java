@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.DataOutputStream;
+import java.io.ObjectOutputStream;
 import java.util.Objects;
 
 public class Chat extends JFrame {
@@ -14,11 +15,11 @@ public class Chat extends JFrame {
     private JTextArea textChat;
     private JTextArea textMessage;
     private static final String ENTER_MESSAGE = "Введите сообщение...";
-    public static String myNick;
-    public String opponentNick;
+    public static Profile myProfile;
+    public Profile opponentProfile;
     private Boolean lastMessageFromOpponent = null;
 
-    Chat(DataOutputStream out) {
+    Chat(ObjectOutputStream out) {
         super("Чат");
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
@@ -49,9 +50,9 @@ public class Chat extends JFrame {
             public void keyTyped(KeyEvent e) {
                 if (e.getKeyChar() == KeyEvent.VK_ENTER && !Objects.equals(textMessage.getText(), "")) {
                     try {
-                        out.writeUTF(ConnectServer.CHAT_MESSAGE + textMessage.getText());
+                        out.writeObject(new ServerCommand(textMessage.getText(), MultiPlayer.ConnectServer.CHAT_MESSAGE));
                         out.flush();
-                        textChat.append(((lastMessageFromOpponent == null || lastMessageFromOpponent) ? myNick + ":\n" : "") + textMessage.getText());
+                        textChat.append(((lastMessageFromOpponent == null || lastMessageFromOpponent) ? myProfile.nick + ":\n" : "") + textMessage.getText());
                         lastMessageFromOpponent = false;
                         textMessage.setText("");
                     } catch (Exception ignore) {
@@ -135,12 +136,12 @@ public class Chat extends JFrame {
         super.setLocation((int) (JavaDia.frame.getWidth() - getWidth() + point.getX()) - 7, (int) (JavaDia.frame.getHeight() - getHeight() + point.getY()) - 8);
     }
 
-    void setOpponentNick(String nick) {
-        this.opponentNick = nick;
+    void setOpponentProfile(Profile profile) {
+        this.opponentProfile = profile;
     }
 
     void showMessage(String massage) {
-        textChat.append(((lastMessageFromOpponent == null || !lastMessageFromOpponent) ? opponentNick + ":\n" : "") + massage);
+        textChat.append(((lastMessageFromOpponent == null || !lastMessageFromOpponent) ? opponentProfile.nick + ":\n" : "") + massage);
         lastMessageFromOpponent = true;
     }
 }

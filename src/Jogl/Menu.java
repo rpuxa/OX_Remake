@@ -4,7 +4,6 @@ import ChangePosition.Change;
 import Engine.Ai;
 import Engine.Analyze;
 import Engine.Play;
-import MultiPlayer.Chat;
 import MultiPlayer.ConnectServer;
 import Tutorial.Tutorial;
 import com.jogamp.opengl.GL2;
@@ -17,10 +16,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import static MultiPlayer.ConnectServer.chat;
+import static MultiPlayer.ConnectServer.versus;
 
 public class Menu {
 
-    static int[] textures = new int[22];
+    static int[] textures = new int[25];
 
     private static final int NEW_GAME = 1;
     private static final int FON = 2;
@@ -43,6 +43,9 @@ public class Menu {
     private static final int RESIGN = 19;
     private static final int OFFER_DRAW = 20;
     private static final int REMATCH = 21;
+    private static final int START_GAME = 22;
+    private static final int PROFILE = 23;
+    private static final int LOG_OUT = 24;
 
 
     private static GL2 gl;
@@ -63,6 +66,9 @@ public class Menu {
     public static Button resign;
     public static Button offer;
     public static Button rematch;
+    public static Button start_game;
+    public static Button profile;
+    public static Button logOut;
     private static RadioButton color_play_white;
     private static RadioButton color_move_white;
     private static RadioButton color_play_black;
@@ -72,8 +78,9 @@ public class Menu {
     private static Thread replace = new Thread();
     private static Thread multi = new Thread();
     private static Thread tutorial = new Thread();
+    static Thread screensaver = new Thread();
     public static boolean isInterrupted = false;
-    public static String massage;
+    public static String message;
 
     static void create() {
         new_game = new Button(NEW_GAME, textures[NEW_GAME], -.875, .8, 0.2, 78.0 / 200, true) {
@@ -150,14 +157,25 @@ public class Menu {
                 multiplayer.visible = true;
                 change.visible = true;
                 tutorial_button.visible = true;
-                massage = null;
+                message = null;
+                JavaRenderer.isScreensaverOn = true;
                 try {
                     chat.setVisible(false);
                     chat = null;
                 } catch (NullPointerException ignore){
                 }
+                try {
+                    versus.setVisible(false);
+                    versus = null;
+                } catch (NullPointerException ignore){
+                }
+
+                screensaver = new Thread(new Screensaver());
+                screensaver.start();
+
                 JavaRenderer.position = Position.make_position_from_position(JavaRenderer.start_position);
                 JavaRenderer.history_positions.clear();
+                JavaRenderer.moveNumber = 0;
             }
         };
 
@@ -213,7 +231,7 @@ public class Menu {
             }
         };
 
-        arrow_forward = new Button(ARROW_RIGHT, textures[ARROW_RIGHT], -.775, -.5, 0.095, 1.0/1.68, false) {
+        arrow_forward = new Button(ARROW_RIGHT, textures[ARROW_RIGHT], -.805, -.5, 0.095, 1.0, false) {
 
             @Override
             public void click() {
@@ -226,7 +244,7 @@ public class Menu {
             }
         };
 
-        arrow_back = new Button(ARROW_LEFT, textures[ARROW_LEFT], -.975, -.5, 0.095, 1.0/1.68, false) {
+        arrow_back = new Button(ARROW_LEFT, textures[ARROW_LEFT], -.950, -.5, 0.095, 1.0, false) {
 
             @Override
             public void click() {
@@ -239,7 +257,7 @@ public class Menu {
             }
         };
 
-        resign = new Button(RESIGN, textures[RESIGN], -.875, .8, 0.2, 78.0 / 200, false) {
+        resign = new Button(RESIGN, textures[RESIGN], -.875, .5, 0.2, 78.0 / 200, false) {
             @Override
             public void click() {
                 UIManager.put("OptionPane.yesButtonText"   , "Сдаться"    );
@@ -250,7 +268,7 @@ public class Menu {
             }
         };
 
-        offer = new Button(OFFER_DRAW, textures[OFFER_DRAW], -.875, .7, 0.2, 78.0 / 200, false) {
+        offer = new Button(OFFER_DRAW, textures[OFFER_DRAW], -.875, .4, 0.2, 78.0 / 200, false) {
             @Override
             public void click() {
                 UIManager.put("OptionPane.yesButtonText"   , "Предложить ничью"    );
@@ -261,7 +279,7 @@ public class Menu {
             }
         };
 
-        rematch = new Button(REMATCH, textures[REMATCH], -.875, .8, 0.2, 78.0 / 200, false) {
+        rematch = new Button(REMATCH, textures[REMATCH], -.875, .5, 0.2, 78.0 / 200, false) {
             @Override
             public void click() {
                 UIManager.put("OptionPane.yesButtonText", "Белых");
@@ -274,10 +292,37 @@ public class Menu {
                     ConnectServer.rematch(false);
             }
         };
+
+        start_game = new Button(START_GAME, textures[START_GAME], -.875, .8, 0.2, 78.0 / 200, false) {
+            @Override
+            public void click() {
+                ConnectServer.startGame();
+            }
+        };
+
+        profile = new Button(PROFILE, textures[PROFILE], -.875, .7, 0.2, 78.0 / 200, false) {
+            @Override
+            public void click() {
+                ConnectServer.showProfile();
+            }
+        };
+
+        logOut = new Button(LOG_OUT, textures[LOG_OUT], -.875, -.6, 0.2, 78.0 / 200, false) {
+
+            @Override
+            public void click() {
+                UIManager.put("OptionPane.yesButtonText"   , "Выйти"    );
+                UIManager.put("OptionPane.noButtonText"    , "Остаться"   );
+                if (JOptionPane.showConfirmDialog(null, "Хотите выйти из профиля?", "Туториал к игре", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.YES_OPTION)
+                    ConnectServer.logOut();
+            }
+        };
+
     }
 
     private static void interrupt() {
         ConnectServer.isEndGame = false;
+        logOut.visible = false;
         rematch.visible = false;
         resign.visible = false;
         offer.visible = false;
@@ -286,23 +331,27 @@ public class Menu {
         arrow_forward.visible = false;
         white.visible = false;
         black.visible = false;
+        start_game.visible = false;
+        profile.visible = false;
         changingPos = false;
         try {
             ConnectServer.in.close();
             ConnectServer.out.close();
         } catch (Exception ignore){
         }
-        while (analyze.isAlive() || play.isAlive() || multi.isAlive() || replace.isAlive() || tutorial.isAlive() || ConnectServer.moveListener.isAlive()) {
+        while (analyze.isAlive() || play.isAlive() || multi.isAlive() || replace.isAlive() || tutorial.isAlive() || ConnectServer.moveListener.isAlive() || screensaver.isAlive()) {
             isInterrupted = true;
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ignored) {
             }
         }
+        JavaRenderer.isScreensaverOn = false;
+        JavaRenderer.position = Position.make_position_from_position(JavaRenderer.start_position);
         isInterrupted = false;
         JavaRenderer.analyzed_column = null;
         JavaRenderer.score = null;
-        JavaRenderer.speed = 0.005;
+        JavaRenderer.speed = 0.001;
         Ai.history_moves.clear();
         new_game.visible = false;
         analyze_button.visible = false;
@@ -338,6 +387,9 @@ public class Menu {
         resign.display();
         rematch.display();
         offer.display();
+        start_game.display();
+        profile.display();
+        logOut.display();
 
         if (changingPos) {
             printStr("Next Move:", -.98, .55, true);
@@ -355,28 +407,8 @@ public class Menu {
         if (thinking)
             square(textures[WAIT], 0.36, -0.77, .75, -1);
 
-        printStr(massage, -.72, -.97);
+        printStr(message, -.72, -.97);
 
-        try {
-            if (show_turn) {
-                String move_white = (!JavaRenderer.position.isTurnWhite) ? "" : " - moves";
-                String move_black = (JavaRenderer.position.isTurnWhite) ? "" : " - moves";
-                String white, black;
-                if (ConnectServer.moveListener.isAlive()) {
-                    white = (JavaRenderer.position.human_plays_for_white) ? Chat.myNick : chat.opponentNick;
-                    black = (!JavaRenderer.position.human_plays_for_white) ? Chat.myNick : chat.opponentNick;
-                    System.out.println(white + " " + black);
-                } else {
-                    String comp = "OX3DGameEngine";
-                    white = (JavaRenderer.position.human_plays_for_white) ? "You" : comp;
-                    black = (!JavaRenderer.position.human_plays_for_white) ? "You" : comp;
-                }
-                printStr("white: " + white + ((JavaRenderer.position.end_game != Position.WHITE_WINS) ? move_white : " - wins!"), -.72, .95);
-                printStr("   vs", -.72, .90);
-                printStr("black: " + black + (((JavaRenderer.position.end_game != Position.BLACK_WINS)) ? move_black : " - wins!"), -.72, .85);
-            }
-        } catch (NullPointerException ignore) {
-        }
     }
 
     static void printStr(String str, double x, double y) {

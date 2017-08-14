@@ -47,8 +47,9 @@ public class JavaRenderer implements GLEventListener {
     public static Integer analyzed_column;
     public static Integer score;
     public static Integer depth;
-    static double speed = 0.005;
+    static double speed = 0.001;
     static Point mouse_cords_viewport;
+    static boolean isScreensaverOn = true;
 
     private static float h;
 
@@ -81,6 +82,12 @@ public class JavaRenderer implements GLEventListener {
         if (analyzed_column != null)
             arrow(gl, -0.6f + 0.4f * (3 - analyzed_column % 4), -0.6f + 0.4f * (analyzed_column / 4), 2.25f);
 
+        if (isScreensaverOn){
+            AbsAngleY = 0;
+            AbsAngleX = -pi/4;
+            distance = -5.0f;
+            AbsAngleZ += 0.01;
+        }
 
         cylinder(gl);
 
@@ -415,7 +422,7 @@ public class JavaRenderer implements GLEventListener {
         gl.glEnable(GL2.GL_TEXTURE_2D);
         try {
             String[] names = {"NewGame", "fon", "Analyze", "MultiPlayer", "Change", "Exit", "Back", "White", "Black", "BlackWins", "WhiteWins", "Draw", "wait"
-                    ,"Tutorial","radio_on","radio_off","arrow_right","arrow_left","resign","offer","rematch"};
+                    ,"Tutorial","radio_on","radio_off","arrow_right","arrow_left","resign","offer","rematch","start","profile","log_out"};
             int type = 1;
             for (String name : names) {
                 File im = new File("Images/" + name + ".png");

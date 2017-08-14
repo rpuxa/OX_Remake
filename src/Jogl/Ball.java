@@ -24,7 +24,7 @@ public class Ball {
         x = -0.6f+0.4f*(3 - column%4);
         y = -0.6f+0.4f*(column/4);
         z = (float) (0.15 + 0.3 * (bit / 16));
-        onGround = false;
+        onGround = true;
         speed = 0;
         this.white = white;
     }
