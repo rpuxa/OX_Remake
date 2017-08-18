@@ -35,10 +35,10 @@ public class JavaRenderer implements GLEventListener {
     public static double AbsAngleZ;
     private static boolean human_plays_for_white = true;
     private static boolean isTurnWhite = true;
-    static int moveNumber = 0;
-    static ArrayList<Position> history_positions = new ArrayList<>();
-    public static Position start_position = Position.make_position_empty(human_plays_for_white, isTurnWhite);
-    public static Position position = Position.make_position_from_position(start_position);
+    public static int moveNumber = 0;
+    public static ArrayList<Position> game = new ArrayList<>();
+    public static Position sandbox_position = Position.make_position_empty(human_plays_for_white, isTurnWhite);
+    public static Position position = Position.make_position_from_position(sandbox_position);
     static Double mouse_at[];
     static boolean mouse_press;
     static double[] mouse_click;
@@ -50,6 +50,7 @@ public class JavaRenderer implements GLEventListener {
     static double speed = 0.001;
     static Point mouse_cords_viewport;
     static boolean isScreensaverOn = true;
+    public static int lastMove = -1;
 
     private static float h;
 
@@ -95,8 +96,8 @@ public class JavaRenderer implements GLEventListener {
 
         column_select = null;
 
-        if (mouse_at != null &&
-                position.end_game == 0 && (Menu.analyze.isAlive() || Menu.white.visible || ((Menu.play.isAlive() || ConnectServer.moveListener.isAlive() || Tutorial.canMove) && position.human_plays_for_white == position.isTurnWhite))) {
+        if (position.allOnGround() && mouse_at != null &&
+                (position.end_game == 0 || Menu.changingPos) && (Menu.sandbox_thread.isAlive() || Menu.changingPos || ((Menu.play.isAlive() || ConnectServer.moveListener.isAlive() || Tutorial.canMove) && position.human_plays_for_white == position.isTurnWhite))) {
             int viewport[] = new int[4];
             float projection[] = new float[16];
             float modelView[] = new float[16];
@@ -136,6 +137,7 @@ public class JavaRenderer implements GLEventListener {
             if (ball.onGround)
                 ellipse(gl, ball.white, ball.x, ball.y, ball.z, ball.getColumn());
             else {
+                lastMove = ball.getColumn();
                 ball.speed += speed;
                 if (ball.z - ball.speed <= -0.15 + 0.3 * count_columns[ball.getColumn()]) {
                     ball.onGround = true;
@@ -147,6 +149,8 @@ public class JavaRenderer implements GLEventListener {
                 ellipse(gl, ball.white, ball.x, ball.y, ball.z, ball.getColumn());
             }
         }
+        if (JavaDia.loading.isVisible())
+            JavaDia.loading.setVisible(false);
     }
 
     private void arrow(GL2 gl, float x, float y, float z) {
@@ -387,7 +391,7 @@ public class JavaRenderer implements GLEventListener {
                 double z2 = points[1].getZ();
                 for (double t = 1; t >= 0.0; t -= 0.005) {
                     if (check(height, radius, x, y, z, (x2 - x1) * t + x1, (y2 - y1) * t + y1, (z2 - z1) * t + z1)) {
-                        if (check_double_click && JavaRenderer.column_select != null && Long.bitCount((JavaRenderer.position.bitBoard.white | JavaRenderer.position.bitBoard.black) & Mask.diagonals[60 + JavaRenderer.column_select]) < 4) {
+                        if (check_double_click && JavaRenderer.column_select != null && (Long.bitCount((JavaRenderer.position.bitBoard.white | JavaRenderer.position.bitBoard.black) & Mask.diagonals[60 + JavaRenderer.column_select]) < 4 || Menu.changingPos)) {
                             column_chosen = num;
                             check_double_click = false;
                             mouse_double_click = false;
@@ -401,6 +405,8 @@ public class JavaRenderer implements GLEventListener {
             gl.glColor3f(0.97f, 0.43f, 0.08f);
             if (analyzed_column != null && analyzed_column == num)
                 gl.glColor3f(0, 1, 0);
+            else if (lastMove == num && !Menu.changingPos)
+                gl.glColor3f(80f/255f, 103f/255f, 200f/255f);
         }
     }
 
@@ -421,8 +427,9 @@ public class JavaRenderer implements GLEventListener {
         gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL2.GL_NICEST);
         gl.glEnable(GL2.GL_TEXTURE_2D);
         try {
-            String[] names = {"NewGame", "fon", "Analyze", "MultiPlayer", "Change", "Exit", "Back", "White", "Black", "BlackWins", "WhiteWins", "Draw", "wait"
-                    ,"Tutorial","radio_on","radio_off","arrow_right","arrow_left","resign","offer","rematch","start","profile","log_out"};
+            String[] names = {"NewGame", "fon", "sandbox", "MultiPlayer", "play", "Exit", "Back", "White", "Black", "BlackWins", "WhiteWins", "Draw", "wait"
+                    ,"Tutorial","radio_on","radio_off","arrow_right","arrow_left","resign","offer","rematch","start","profile","log_out","opp_rec","my_rec",
+                    "playback","editor","save","load","start_analyze","stop_analyze","delete","clear"};
             int type = 1;
             for (String name : names) {
                 File im = new File("Images/" + name + ".png");

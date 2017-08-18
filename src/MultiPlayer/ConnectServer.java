@@ -1,7 +1,7 @@
 package MultiPlayer;
 
 import Engine.BitBoard;
-import Engine.Play;
+import PlayEngine.Play;
 import Jogl.*;
 import Jogl.Menu;
 import MultiPlayer.Accout.LoginOrNewAccount;
@@ -11,7 +11,6 @@ import javax.sound.sampled.*;
 import javax.swing.*;
 
 import static Jogl.Menu.message;
-import static Jogl.Menu.sounds;
 
 import java.io.*;
 import java.net.ConnectException;
@@ -46,6 +45,7 @@ public class ConnectServer implements Runnable {
     private static final int ACCEPT_DRAW = 19;
     private final static int LOG_OUT = 20;
     public final static int CHAT_AUDIO = 21;
+    public final static int CHAT_AUDIO_OPPONENT_RECORDING = 22;
     public static Thread moveListener = new Thread();
     public static Chat chat;
     public static Versus versus;
@@ -53,6 +53,8 @@ public class ConnectServer implements Runnable {
     public static ObjectInputStream in;
     public static boolean isEndGame = false;
     public static boolean opp_found = false;
+    public static boolean playback = false;
+    public static boolean opp_rec = false;
 
     @Override
     public void run() {
@@ -121,9 +123,15 @@ public class ConnectServer implements Runnable {
                             break;
                         }
 
-                        case CHAT_AUDIO: {
-                            File file = new File("Sounds/opp_rec.wav");
+                        case CHAT_AUDIO_OPPONENT_RECORDING: {
+                            opp_rec = true;
+                            break;
+                        }
 
+                        case CHAT_AUDIO: {
+                            while (playback)
+                                Thread.sleep(10);
+                            File file = new File("Sounds/opp_rec.wav");
                             try {
                                 FileOutputStream os = new FileOutputStream(file);
 
@@ -137,13 +145,20 @@ public class ConnectServer implements Runnable {
                                     clip.open(ais);
                                     clip.setFramePosition(0);
                                     clip.start();
-                                } catch (IOException | UnsupportedAudioFileException | LineUnavailableException exc) {
-                                    exc.printStackTrace();
+                                    opp_rec = false;
+                                    playback = true;
+                                    new Thread(() -> {
+                                        try {
+                                            Thread.sleep(clip.getMicrosecondLength()/1000);
+                                            playback = false;
+                                        } catch (InterruptedException ignored) {
+                                        }
+                                    }).start();
+
+                                } catch (IOException | UnsupportedAudioFileException | LineUnavailableException ignored) {
                                 }
                             } catch (Exception ignored) {
-                                ignored.printStackTrace();
                             }
-
                             break;
                         }
                         case SEND_MOVE: {
@@ -248,9 +263,9 @@ public class ConnectServer implements Runnable {
                         }
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
                     message = "Lost connection with server.";
                     opp_found = false;
+                    Thread.sleep(1000);
                 }
                 if (Menu.isInterrupted) {
                     opp_found = false;
@@ -263,10 +278,11 @@ public class ConnectServer implements Runnable {
     }
 
     private void beginGame(boolean white) throws IOException {
+        Menu.save.visible = true;
+        JavaRenderer.lastMove = -1;
         opp_found = true;
         isEndGame = false;
         message = "Game started! You play for " + ((white) ? "white" : "black");
-        Menu.show_turn = true;
         JavaRenderer.position = Position.make_position_empty(white, true);
         moveListener = new Thread(new MoveListener(out));
         moveListener.start();
@@ -384,13 +400,8 @@ public class ConnectServer implements Runnable {
             Chat.myProfile.draws++;
         }
         int myRating = Chat.myProfile.rating, oppRating = chat.opponentProfile.rating;
-        System.out.println(myRating + " " + oppRating + " " + ((double) (result) / 2 + 0.5));
         Chat.myProfile.rating = ratingCount(myRating, oppRating, (double) (result) / 2 + 0.5);
-        System.out.println(Chat.myProfile.rating);
-        System.out.println(oppRating + " " + myRating + " " + ((double) (-result) / 2 - 0.5));
         chat.opponentProfile.rating = ratingCount(oppRating, myRating, (double) (-result) / 2 + 0.5);
-        System.out.println(chat.opponentProfile.rating);
-
             try {
                 out.writeObject(new ServerCommand(Chat.myProfile, UPDATE_PROFILE));
                 out.flush();

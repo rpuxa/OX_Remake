@@ -1,5 +1,6 @@
 package Engine;
 
+import Editor.Sandbox;
 import Jogl.Menu;
 
 import java.util.*;
@@ -14,9 +15,10 @@ public class Ai {
 
     public static Map<Long,int[]> history_moves = new HashMap<>();
 
-    public int[] bfs(BitBoard bitBoard, int depth, boolean white){
+    public int[] bfs(BitBoard bitBoard, int depth, boolean white, int time){
+        long timeStart = System.currentTimeMillis();
         int num[] = new int[2];
-        for (int i = 2; i <= depth; i++) {
+        for (int i = 2; i <= depth || System.currentTimeMillis() - timeStart < time; i++) {
             num = alphaBetaStart(bitBoard,(white) ? 0:1,i);
             if (num[1] > 20000 || num[1] < -20000)
                 break;
@@ -53,7 +55,7 @@ public class Ai {
         }
     }
     private int alphaBeta(BitBoard bitBoard, int depth, int maxDepth, int alpha, int beta){
-        if (Menu.isInterrupted || Analyze.analyze_interrupt)
+        if (Menu.isInterrupted || Sandbox.analyze_interrupt)
             return 0;
         if (bitBoard.win(true)!=0)
             return 30000 - depth + ((turnWhite) ? 1 : 0);

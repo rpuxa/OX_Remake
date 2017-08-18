@@ -71,9 +71,7 @@ public class NewAccount {
         label.setBounds(20, 180, 145, 20);
         linked_label.setBounds(165, 180, 120, 20);
 
-        ok.addActionListener(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        ok.addActionListener(e -> {
                 if (login_field.getText().length() < 4 || login_field.getText().length() > 16){
                     JOptionPane.showMessageDialog(frame, "Логин может быть не больше 16 символов и не меньше 4", "Сетевая игра", JOptionPane.ERROR_MESSAGE);
                     return;
@@ -92,14 +90,9 @@ public class NewAccount {
                 profile = Profile.make_new_profile(login_field.getText());
                 pass_plus_login = Profile.loginPlusPass(login_field.getText(),pass1_field.getPassword());
             }
-        });
+        );
 
-        cancel.addActionListener(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                LoginOrNewAccount.isCanceled = true;
-            }
-        });
+        cancel.addActionListener(e -> LoginOrNewAccount.isCanceled = true);
 
         linked_label.addMouseListener(new MouseListener() {
             @Override

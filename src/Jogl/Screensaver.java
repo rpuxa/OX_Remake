@@ -5,7 +5,7 @@ import Engine.BitBoard;
 
 import java.util.Random;
 
-import static Engine.Play.checkEnd;
+import static PlayEngine.Play.checkEnd;
 
 public class Screensaver implements Runnable {
 
@@ -20,7 +20,7 @@ public class Screensaver implements Runnable {
                 BitBoard bitBoard = BitBoard.make_bitboard_from_bitboard(JavaRenderer.position.bitBoard);
                 boolean white = JavaRenderer.position.isTurnWhite;
 
-                int[] num = new Ai(white).bfs(bitBoard, 2 * random.nextInt(2) + 2 + ((white) ? 1 : 0), !white);
+                int[] num = new Ai(white).bfs(bitBoard, 2 * random.nextInt(2) + 2 + ((white) ? 1 : 0), !white,0);
 
                 bitBoard = BitBoard.makeMove(bitBoard, white, (byte) num[0]);
 

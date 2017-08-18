@@ -1,14 +1,36 @@
-package Engine;
+package PlayEngine;
 
+import Engine.Ai;
+import Engine.BitBoard;
 import Jogl.Ball;
 import Jogl.JavaRenderer;
 import Jogl.Menu;
 import Jogl.Position;
 
+import java.util.Random;
+
 public class Play implements Runnable {
+
+    private int depth;
+    private int time;
+    private boolean startPos;
+
+    private static Random rand = new Random();
+
+    public Play(int depth, int time, int color, boolean startPosition) {
+        this.depth = depth;
+        this.time = time;
+        if (color == 0)
+            JavaRenderer.position.human_plays_for_white = rand.nextBoolean();
+        else
+            JavaRenderer.position.human_plays_for_white = color == 1;
+        startPos = startPosition;
+    }
 
     public void run() {
         boolean first = true;
+        if (startPos)
+            JavaRenderer.position = Position.make_position_empty(JavaRenderer.position.human_plays_for_white,true);
         BitBoard bitBoard = BitBoard.make_bitboard_from_bitboard(JavaRenderer.position.bitBoard);
         boolean white = JavaRenderer.position.human_plays_for_white;
         boolean isTurnWhite = JavaRenderer.position.isTurnWhite;
@@ -38,7 +60,7 @@ public class Play implements Runnable {
             first = false;
 
             Menu.thinking = true;
-            int[] num = new Ai(white).bfs(bitBoard,6 + ((white) ? 0 : 1), white);
+            int[] num = new Ai(white).bfs(bitBoard,depth + ((white) ? 0 : 1), white,time);
             Menu.thinking = false;
 
 
@@ -83,6 +105,8 @@ public class Play implements Runnable {
             JavaRenderer.position.end_game = Position.DRAW;
             return true;
         }
+        JavaRenderer.position.end_game = 0;
+        JavaRenderer.position.mask = 0;
         return false;
     }
 }

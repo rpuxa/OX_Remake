@@ -1,12 +1,13 @@
 package Engine;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Random;
 
 import static Utils.BitUtils.*;
 
 
-public class BitBoard {
+public class BitBoard implements Serializable {
     public long white;
     public long black;
 
@@ -102,7 +103,16 @@ public class BitBoard {
         return bitBoard;
     }
 
-    long win(boolean white) {
+    public static BitBoard unMakeMove(BitBoard bitBoard2, byte move){
+        BitBoard bitBoard = BitBoard.make_bitboard_from_bitboard(bitBoard2);
+        long all = bitBoard.white | bitBoard.black;
+        int z = Long.bitCount(all & Mask.column[move])-1;
+        bitBoard.white = zeroBit(bitBoard.white,16*z+move);
+        bitBoard.black = zeroBit(bitBoard.black,16*z+move);
+        return bitBoard;
+    }
+
+    public long win(boolean white) {
         for (int i = 0; i < Mask.diagonals.length; i++) {
             if (white && Long.bitCount(this.white & Mask.diagonals[i]) == 4)
                 return Mask.diagonals[i];
@@ -122,23 +132,21 @@ public class BitBoard {
         return white == other.white && black == other.black;
     }
 
-    public static void zKeys_gen(){
+    private static int zKeys_int[][] = new int[64][2];
+    private static long zKeys_long[][] = new long[64][2];
+
+    static {
         Random rand = new Random();
         for (int i = 0; i < 64; i++)
             for (int j = 0; j < 2; j++)
                 zKeys_int[i][j] = rand.nextInt();
-        zKeys_long_gen();
-    }
 
-    private static void zKeys_long_gen(){
-        Random rand = new Random();
         for (int i = 0; i < 64; i++)
             for (int j = 0; j < 2; j++)
                 zKeys_long[i][j] = rand.nextLong();
     }
 
-    private static int zKeys_int[][] = new int[64][2];
-    private static long zKeys_long[][] = new long[64][2];
+
 
     long getKey() {
         long hash = 0L;

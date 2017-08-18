@@ -2,7 +2,7 @@ package Tutorial;
 
 import Engine.Ai;
 import Engine.BitBoard;
-import Engine.Play;
+import PlayEngine.Play;
 import Jogl.Ball;
 import Jogl.JavaRenderer;
 import Jogl.Menu;

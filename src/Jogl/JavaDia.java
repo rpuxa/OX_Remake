@@ -3,11 +3,17 @@ package Jogl;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.FileInputStream;
 
 import MultiPlayer.AudioChat.RecordVoice;
 import MultiPlayer.ConnectServer;
+import MultiPlayer.ServerCommand;
 import com.jogamp.opengl.awt.GLCanvas;
 
+import javax.swing.*;
+
+import static MultiPlayer.AudioChat.RecordVoice.targetDataLine;
 import static MultiPlayer.ConnectServer.chat;
 import static MultiPlayer.ConnectServer.versus;
 
@@ -20,10 +26,25 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
     private static Double mouse_start_angle;
     private static GLCanvas canvas = new GLCanvas();
     private static final double pi = 3.141592;
-    public static Frame frame;
+    public static JFrame frame;
+    static JFrame loading;
+    static {
+        new Thread(() -> {
+            loading = new JFrame();
+            loading.add(new JLabel(new ImageIcon("Images/loading.gif")));
+            loading.setUndecorated(true);
+            loading.setBackground(new Color(0, 0, 0, 0));
+            final Dimension screenSize = loading.getToolkit().getScreenSize();
+            final int centerX = screenSize.width / 2, centerY = screenSize.height / 2;
+            loading.setLocation(centerX - 500 / 2, centerY - 500 / 2);
+            loading.setSize(500, 500);
+            loading.setAlwaysOnTop(true);
+            //loading.setVisible(true);
+        }).start();
+    }
 
     public void run() {
-        frame = new Frame("OX3D_OpenGL");
+        frame = new JFrame("OX3D_OpenGL");
         int size = frame.getExtendedState();
         canvas.addGLEventListener(new JavaRenderer());
         frame.add(canvas);
@@ -60,7 +81,6 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
         canvas.addMouseWheelListener(this);
         frame.pack();
         frame.setLocationRelativeTo(null);
-
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 bQuit = true;
@@ -68,26 +88,38 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
             }
         });
 
-        frame.setVisible(true);
         canvas.requestFocus();
         frame.setMinimumSize(new Dimension(800,600));
         Menu.screensaver = new Thread(new Screensaver());
         Menu.screensaver.start();
-        while( !bQuit ) {
+        frame.setVisible(true);
+        while( !bQuit )
             canvas.display();
-        }
     }
 
     public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_R && ConnectServer.opp_found) {
+        if (e.getKeyCode() == KeyEvent.VK_R && ConnectServer.opp_found && !RecordVoice.pressed_R) {
             RecordVoice.pressed_R = true;
             new Thread(RecordVoice::record).start();
         }
     }
 
     public void keyReleased(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_R)
+        if (e.getKeyCode() == KeyEvent.VK_R && ConnectServer.opp_found) {
             RecordVoice.pressed_R = false;
+            targetDataLine.stop();
+            targetDataLine.close();
+            try {
+                File outputFile = new File("Sounds/rec.wav");
+                byte[] fileInArray = new byte[(int)outputFile.length()];
+                FileInputStream f = new FileInputStream(outputFile);
+                f.read(fileInArray);
+                ConnectServer.out.writeObject(new ServerCommand(fileInArray, ConnectServer.CHAT_AUDIO));
+                ConnectServer.out.flush();
+            } catch (Exception ignored){
+                ignored.printStackTrace();
+            }
+        }
     }
 
     public void keyTyped(KeyEvent e) {

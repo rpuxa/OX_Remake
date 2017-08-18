@@ -1,12 +1,14 @@
 package Jogl;
 
-public class Ball {
+import java.io.Serializable;
+
+public class Ball implements Serializable {
     float x;
     float y;
-    float z;
+    public float z;
     boolean onGround;
     double speed;
-    private int column;
+    public int column;
     boolean white;
 
     public Ball(int column, boolean white){

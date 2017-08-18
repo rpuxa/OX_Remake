@@ -1,12 +1,14 @@
 package Jogl;
 
 import Engine.BitBoard;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import static Utils.BitUtils.getBit;
 
 
-public class Position {
+public class Position implements Serializable {
     public BitBoard bitBoard;
     public boolean human_plays_for_white;
     public int end_game;
@@ -39,11 +41,12 @@ public class Position {
         return new Position(BitBoard.make_bitboard_from_bitboard(position.bitBoard),position.human_plays_for_white,position.end_game,new ArrayList<>(position.balls),position.isTurnWhite, position.mask);
     }
 
-    public static void add_to_history_positions(Position position){
-        for (int i = JavaRenderer.history_positions.size()-1; i > JavaRenderer.moveNumber; i--)
-            JavaRenderer.history_positions.remove(i);
-        JavaRenderer.history_positions.add(Position.make_position_from_position(position));
-        JavaRenderer.moveNumber++;
+    public static void add_to_history_positions(Position position, boolean first){
+        for (int i = JavaRenderer.game.size()-1; i > JavaRenderer.moveNumber; i--)
+            JavaRenderer.game.remove(i);
+        JavaRenderer.game.add(Position.make_position_from_position(position));
+        if (!first)
+            JavaRenderer.moveNumber++;
     }
 
     private static ArrayList<Ball> make_balls_from_bitboard(BitBoard bitBoard){

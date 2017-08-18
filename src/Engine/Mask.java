@@ -7,8 +7,7 @@ public class Mask {
     static long column[] = new long[16];
     public static long diagonals[] = new long[76];
     static long under_diagonals[][][] = new long[76][4][2];
-
-    public static void calculate() {
+    static {
         for (int z = 0; z < 4; z++)
             for (int y = 0; y < 4; y++)
                 for (int x = 0; x < 4; x++) {

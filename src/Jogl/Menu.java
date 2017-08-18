@@ -1,10 +1,13 @@
 package Jogl;
 
-import ChangePosition.Change;
+import Editor.ChangePosition.Change;
+import Editor.Analyze.Analyze;
+import Editor.Sandbox;
 import Engine.Ai;
-import Engine.Analyze;
-import Engine.Play;
+import Engine.BitBoard;
+import MultiPlayer.AudioChat.RecordVoice;
 import MultiPlayer.ConnectServer;
+import Oxpos.SaveAndLoad;
 import Tutorial.Tutorial;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
@@ -17,16 +20,17 @@ import java.util.ArrayList;
 
 import static MultiPlayer.ConnectServer.chat;
 import static MultiPlayer.ConnectServer.versus;
+import PlayEngine.ChoseDif;
 
 public class Menu {
 
-    static int[] textures = new int[25];
+    static int[] textures = new int[35];
 
     private static final int NEW_GAME = 1;
     private static final int FON = 2;
-    private static final int ANALYZE = 3;
+    private static final int SANDBOX = 3;
     private static final int MULTIPLAYER = 4;
-    private static final int CHANGE = 5;
+    private static final int PLAY_WITH_ENGINE = 5;
     private static final int EXIT = 6;
     private static final int BACK = 7;
     private static final int WHITE = 8;
@@ -46,17 +50,26 @@ public class Menu {
     private static final int START_GAME = 22;
     private static final int PROFILE = 23;
     private static final int LOG_OUT = 24;
+    private static final int OPPONENT_RECORDING = 25;
+    private static final int YOU_RECORDING = 26;
+    private static final int PLAYBACK = 27;
+    private static final int EDITOR = 28;
+    private static final int SAVE_POSITION = 29;
+    private static final int LOAD_POSITON = 30;
+    private static final int START_ANALYZE = 31;
+    private static final int STOP_ANALYZE = 32;
+    private static final int DELETE = 33;
+    private static final int CLEAR_ALL = 34;
 
 
     private static GL2 gl;
     public static boolean thinking = false;
-    public static boolean show_turn = false;
-    private static boolean changingPos = false;
+    static boolean changingPos = false;
     private static Button new_game;
-    private static Button analyze_button;
+    private static Button sandbox;
     private static Button multiplayer;
-    private static Button change;
-    static Button white;
+    private static Button play_button;
+    private static Button white;
     private static Button black;
     public static Button back;
     private static Button exit;
@@ -69,117 +82,120 @@ public class Menu {
     public static Button start_game;
     public static Button profile;
     public static Button logOut;
-    private static RadioButton color_play_white;
+    private static Button editor_button;
+    private static Button start_analyze;
+    private static Button stop_analyze;
+    public static Button back_sandbox;
+    private static Button delete;
+    private static Button clear;
+    public static Button save;
+    private static Button load;
     private static RadioButton color_move_white;
-    private static RadioButton color_play_black;
     private static RadioButton color_move_black;
-    static Thread play = new Thread();
-    static Thread analyze = new Thread();
-    private static Thread replace = new Thread();
+    public static Thread play = new Thread();
+    private static Thread editor = new Thread();
     private static Thread multi = new Thread();
     private static Thread tutorial = new Thread();
+    static Thread sandbox_thread = new Thread();
     static Thread screensaver = new Thread();
     public static boolean isInterrupted = false;
     public static String message;
 
     static void create() {
-        new_game = new Button(NEW_GAME, textures[NEW_GAME], -.875, .8, 0.2, 78.0 / 200, true) {
+        new_game = new Button(textures[NEW_GAME], -.875, .8, 0.2, 78.0 / 200, true) {
             @Override
             public void click() {
                 interrupt();
-                show_turn = true;
-                play = new Thread(new Play());
-                play.start();
+                new ChoseDif(true);
+                save.visible = true;
             }
         };
 
-        analyze_button = new Button(ANALYZE, textures[ANALYZE], -.875, .7, 0.2, 78.0 / 200, true) {
+        sandbox = new Button(textures[SANDBOX], -.875, .7, 0.2, 78.0 / 200, true) {
             @Override
             public void click() {
                 interrupt();
+                play_button.visible = true;
+                editor_button.visible = true;
+                start_analyze.visible = true;
                 arrow_back.visible = true;
                 arrow_forward.visible = true;
-                analyze = new Thread(new Analyze());
-                analyze.start();
+                save.visible = true;
+                load.visible = true;
+                sandbox_thread = new Thread(new Sandbox());
+                sandbox_thread.start();
             }
         };
 
-        multiplayer = new Button(MULTIPLAYER, textures[MULTIPLAYER], -.875, .6, 0.2, 78.0 / 200, true) {
-            @Override
-            public void click() {
-                    interrupt();
-                    multi = new Thread(new ConnectServer());
-                    multi.start();
-            }
-        };
-
-        change = new Button(CHANGE, textures[CHANGE], -.875, .5, 0.2, 78.0 / 200, true) {
+        multiplayer = new Button(textures[MULTIPLAYER], -.875, .6, 0.2, 78.0 / 200, true) {
             @Override
             public void click() {
                 interrupt();
-                arrow_back.visible = true;
-                arrow_forward.visible = true;
-                changingPos = true;
-                color_move_white.visible = true;
-                color_move_black.visible = true;
-                color_play_white.visible = true;
-                color_play_black.visible = true;
-                white.visible = true;
-                black.visible = true;
-                JavaRenderer.speed = 1;
-                replace = new Thread(new Change());
-                replace.start();
+                multi = new Thread(new ConnectServer());
+                multi.start();
             }
         };
 
-        white = new Button(WHITE, textures[WHITE], -.875, .8, 0.2, 78.0 / 200, false) {
+        play_button = new Button(textures[PLAY_WITH_ENGINE], -.875, .8, 0.2, 78.0 / 200, false) {
+            @Override
+            public void click() {
+                interrupt();
+                new ChoseDif(false);
+                back.visible = false;
+                back_sandbox.visible = true;
+                save.visible = true;
+            }
+        };
+
+        white = new Button(textures[WHITE], -.875, .8, 0.2, 78.0 / 200, false) {
             @Override
             public void click() {
                 Change.isTurnWhite = true;
+                Change.delete = false;
             }
         };
 
-        black = new Button(BLACK, textures[BLACK], -.875, .7, 0.2, 78.0 / 200, false) {
+        black = new Button(textures[BLACK], -.875, .7, 0.2, 78.0 / 200, false) {
             @Override
             public void click() {
                 Change.isTurnWhite = false;
+                Change.delete = false;
             }
         };
 
-        back = new Button(BACK, textures[BACK], -.875, -.7, 0.2, 78.0 / 200, false) {
+        back = new Button(textures[BACK], -.875, -.7, 0.2, 78.0 / 200, false) {
 
             @Override
             public void click() {
                 interrupt();
                 back.visible = false;
                 new_game.visible = true;
-                analyze_button.visible = true;
+                sandbox.visible = true;
                 multiplayer.visible = true;
-                change.visible = true;
                 tutorial_button.visible = true;
                 message = null;
                 JavaRenderer.isScreensaverOn = true;
                 try {
                     chat.setVisible(false);
                     chat = null;
-                } catch (NullPointerException ignore){
+                } catch (NullPointerException ignore) {
                 }
                 try {
                     versus.setVisible(false);
                     versus = null;
-                } catch (NullPointerException ignore){
+                } catch (NullPointerException ignore) {
                 }
 
                 screensaver = new Thread(new Screensaver());
                 screensaver.start();
 
-                JavaRenderer.position = Position.make_position_from_position(JavaRenderer.start_position);
-                JavaRenderer.history_positions.clear();
+                JavaRenderer.position = Position.make_position_from_position(JavaRenderer.sandbox_position);
+                JavaRenderer.game.clear();
                 JavaRenderer.moveNumber = 0;
             }
         };
 
-        exit = new Button(EXIT, textures[EXIT], -.875, -.8, 0.2, 78.0 / 200, true) {
+        exit = new Button(textures[EXIT], -.875, -.8, 0.2, 78.0 / 200, true) {
 
             @Override
             public void click() {
@@ -188,12 +204,12 @@ public class Menu {
             }
         };
 
-        tutorial_button = new Button(TUTORIAL, textures[TUTORIAL], -.875, .4, 0.2, 78.0 / 200, true) {
+        tutorial_button = new Button(textures[TUTORIAL], -.875, .5, 0.2, 78.0 / 200, true) {
 
             @Override
             public void click() {
-                UIManager.put("OptionPane.yesButtonText"   , "Да"    );
-                UIManager.put("OptionPane.noButtonText"    , "Нет"   );
+                UIManager.put("OptionPane.yesButtonText", "Да");
+                UIManager.put("OptionPane.noButtonText", "Нет");
                 if (JOptionPane.showConfirmDialog(null, "Хотите начать туториал по игре?", "Туториал к игре", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.YES_OPTION) {
                     interrupt();
                     back.visible = false;
@@ -203,83 +219,69 @@ public class Menu {
             }
         };
 
-        color_move_white = new RadioButton(-.98,.5,true,false,0,"white") {
+        color_move_white = new RadioButton(-.97, .3, true, false, 0, "white") {
             @Override
             void click() {
                 JavaRenderer.position.isTurnWhite = true;
             }
         };
 
-        color_move_black = new RadioButton(-.98,.4,false,false,0,"black") {
+        color_move_black = new RadioButton(-.97, .2, false, false, 0, "black") {
             @Override
             void click() {
                 JavaRenderer.position.isTurnWhite = false;
             }
         };
 
-        color_play_white = new RadioButton(-.98,.2,true,false,1,"white") {
-            @Override
-            void click() {
-                JavaRenderer.position.human_plays_for_white = true;
-            }
-        };
-
-        color_play_black = new RadioButton(-.98,.1,false,false,1,"black") {
-            @Override
-            void click() {
-                JavaRenderer.position.human_plays_for_white = false;
-            }
-        };
-
-        arrow_forward = new Button(ARROW_RIGHT, textures[ARROW_RIGHT], -.805, -.5, 0.095, 1.0, false) {
+        arrow_forward = new Button(textures[ARROW_RIGHT], -.805, -.5, 0.095, 1.0, false) {
 
             @Override
             public void click() {
                 try {
-                    JavaRenderer.position = Position.make_position_from_position(JavaRenderer.history_positions.get(JavaRenderer.moveNumber + 1));
+                    JavaRenderer.position = Position.make_position_from_position(JavaRenderer.game.get(JavaRenderer.moveNumber + 1));
                     JavaRenderer.moveNumber++;
-                } catch (Exception ignore){
+                    arrowStartAnalyze();
+                } catch (Exception ignore) {
                 }
-
             }
         };
 
-        arrow_back = new Button(ARROW_LEFT, textures[ARROW_LEFT], -.950, -.5, 0.095, 1.0, false) {
+        arrow_back = new Button(textures[ARROW_LEFT], -.950, -.5, 0.095, 1.0, false) {
 
             @Override
             public void click() {
                 try {
-                    JavaRenderer.position = Position.make_position_from_position(JavaRenderer.history_positions.get(JavaRenderer.moveNumber - 1));
+                    JavaRenderer.position = Position.make_position_from_position(JavaRenderer.game.get(JavaRenderer.moveNumber - 1));
                     JavaRenderer.moveNumber--;
-                } catch (Exception ignore){
+                    arrowStartAnalyze();
+                } catch (Exception ignore) {
                 }
-
             }
         };
 
-        resign = new Button(RESIGN, textures[RESIGN], -.875, .5, 0.2, 78.0 / 200, false) {
+        resign = new Button(textures[RESIGN], -.875, .5, 0.2, 78.0 / 200, false) {
             @Override
             public void click() {
-                UIManager.put("OptionPane.yesButtonText"   , "Сдаться"    );
-                UIManager.put("OptionPane.noButtonText"    , "Продолжить игру"   );
+                UIManager.put("OptionPane.yesButtonText", "Сдаться");
+                UIManager.put("OptionPane.noButtonText", "Продолжить игру");
                 if (JOptionPane.showConfirmDialog(null, "Вы точно хотите сдаться?", "Сетевая игра", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.YES_OPTION) {
                     ConnectServer.resign();
                 }
             }
         };
 
-        offer = new Button(OFFER_DRAW, textures[OFFER_DRAW], -.875, .4, 0.2, 78.0 / 200, false) {
+        offer = new Button(textures[OFFER_DRAW], -.875, .4, 0.2, 78.0 / 200, false) {
             @Override
             public void click() {
-                UIManager.put("OptionPane.yesButtonText"   , "Предложить ничью"    );
-                UIManager.put("OptionPane.noButtonText"    , "Продолжить игру"   );
+                UIManager.put("OptionPane.yesButtonText", "Предложить ничью");
+                UIManager.put("OptionPane.noButtonText", "Продолжить игру");
                 if (JOptionPane.showConfirmDialog(null, "Вы хотите предложить ничью?", "Сетевая игра", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.YES_OPTION) {
                     ConnectServer.offer();
                 }
             }
         };
 
-        rematch = new Button(REMATCH, textures[REMATCH], -.875, .5, 0.2, 78.0 / 200, false) {
+        rematch = new Button(textures[REMATCH], -.875, .5, 0.2, 78.0 / 200, false) {
             @Override
             public void click() {
                 UIManager.put("OptionPane.yesButtonText", "Белых");
@@ -293,53 +295,158 @@ public class Menu {
             }
         };
 
-        start_game = new Button(START_GAME, textures[START_GAME], -.875, .8, 0.2, 78.0 / 200, false) {
+        start_game = new Button(textures[START_GAME], -.875, .8, 0.2, 78.0 / 200, false) {
             @Override
             public void click() {
                 ConnectServer.startGame();
             }
         };
 
-        profile = new Button(PROFILE, textures[PROFILE], -.875, .7, 0.2, 78.0 / 200, false) {
+        profile = new Button(textures[PROFILE], -.875, .7, 0.2, 78.0 / 200, false) {
             @Override
             public void click() {
                 ConnectServer.showProfile();
             }
         };
 
-        logOut = new Button(LOG_OUT, textures[LOG_OUT], -.875, -.6, 0.2, 78.0 / 200, false) {
+        logOut = new Button(textures[LOG_OUT], -.875, -.6, 0.2, 78.0 / 200, false) {
 
             @Override
             public void click() {
-                UIManager.put("OptionPane.yesButtonText"   , "Выйти"    );
-                UIManager.put("OptionPane.noButtonText"    , "Остаться"   );
+                UIManager.put("OptionPane.yesButtonText", "Выйти");
+                UIManager.put("OptionPane.noButtonText", "Остаться");
                 if (JOptionPane.showConfirmDialog(null, "Хотите выйти из профиля?", "Туториал к игре", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.YES_OPTION)
                     ConnectServer.logOut();
             }
         };
 
+        editor_button = new Button(textures[EDITOR], -.875, .6, 0.2, 78.0 / 200, false) {
+            @Override
+            public void click() {
+                interrupt();
+                changingPos = true;
+                white.visible = true;
+                black.visible = true;
+                back.visible = false;
+                back_sandbox.visible = true;
+                delete.visible = true;
+                clear.visible = true;
+                color_move_white.visible = true;
+                color_move_black.visible = true;
+                JavaRenderer.speed = 1;
+                editor = new Thread(new Change());
+                editor.start();
+            }
+        };
+
+        back_sandbox = new Button(textures[BACK], -.875, -.7, 0.2, 78.0 / 200, false) {
+            @Override
+            public void click() {
+                interrupt();
+                new Thread(() -> sandbox.click()).start();
+                back_sandbox.visible = false;
+            }
+        };
+
+        delete = new Button(textures[DELETE], -.875, .6, 0.2, 78.0 / 200, false) {
+            @Override
+            public void click() {
+                Change.delete = true;
+            }
+        };
+
+        clear = new Button(textures[CLEAR_ALL], -.875, .5, 0.2, 78.0 / 200, false) {
+            @Override
+            public void click() {
+                JavaRenderer.position = Position.make_position_empty(true,color_move_white.active);
+                Change.bitBoard = BitBoard.make_bitboard_empty();
+            }
+        };
+
+        start_analyze = new Button(textures[START_ANALYZE], -.875, .7, 0.2, 78.0 / 200, false) {
+            @Override
+            public void click() {
+                start_analyze.visible = false;
+                stop_analyze.visible = true;
+                Sandbox.analyzePosition = new Thread(new Analyze());
+                Sandbox.analyzePosition.start();
+                Sandbox.start_analyze = true;
+            }
+        };
+
+        stop_analyze = new Button(textures[STOP_ANALYZE], -.875, .7, 0.2, 78.0 / 200, false) {
+            @Override
+            public void click() {
+                start_analyze.visible = true;
+                stop_analyze.visible = false;
+                Sandbox.start_analyze = false;
+                while (Sandbox.analyzePosition.isAlive()) {
+                    Sandbox.analyze_interrupt = true;
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ignored) {
+                    }
+                }
+                JavaRenderer.analyzed_column = null;
+                Sandbox.analyze_interrupt = false;
+            }
+        };
+
+        save = new Button(textures[SAVE_POSITION], .875, .8, 0.2, 78.0 / 200, false) {
+            @Override
+            public void click() {
+                SaveAndLoad.save();
+            }
+        };
+
+        load = new Button(textures[LOAD_POSITON], .875, .7, 0.2, 78.0 / 200, false) {
+            @Override
+            public void click() {
+                SaveAndLoad.load();
+            }
+        };
+    }
+
+    private static void arrowStartAnalyze(){
+        try {
+            if (Sandbox.start_analyze) {
+                Thread stop = new Thread(stop_analyze::click);
+                stop.start();
+                stop.join();
+                new Thread(start_analyze::click).start();
+            }
+        } catch (Exception ignore){
+        }
     }
 
     private static void interrupt() {
+        JavaRenderer.lastMove = -1;
         ConnectServer.isEndGame = false;
+        play_button.visible = false;
         logOut.visible = false;
         rematch.visible = false;
         resign.visible = false;
         offer.visible = false;
-        show_turn = false;
         arrow_back.visible = false;
         arrow_forward.visible = false;
         white.visible = false;
         black.visible = false;
         start_game.visible = false;
         profile.visible = false;
+        editor_button.visible = false;
+        delete.visible = false;
+        clear.visible = false;
         changingPos = false;
+        start_analyze.visible = false;
+        stop_analyze.visible = false;
+        load.visible = false;
+        save.visible = false;
         try {
             ConnectServer.in.close();
             ConnectServer.out.close();
-        } catch (Exception ignore){
+        } catch (Exception ignore) {
         }
-        while (analyze.isAlive() || play.isAlive() || multi.isAlive() || replace.isAlive() || tutorial.isAlive() || ConnectServer.moveListener.isAlive() || screensaver.isAlive()) {
+        while (sandbox_thread.isAlive() || play.isAlive() || multi.isAlive() || editor.isAlive() || tutorial.isAlive() || ConnectServer.moveListener.isAlive() || screensaver.isAlive()) {
             isInterrupted = true;
             try {
                 Thread.sleep(100);
@@ -347,22 +454,19 @@ public class Menu {
             }
         }
         JavaRenderer.isScreensaverOn = false;
-        JavaRenderer.position = Position.make_position_from_position(JavaRenderer.start_position);
+        JavaRenderer.position = Position.make_position_from_position(JavaRenderer.sandbox_position);
         isInterrupted = false;
         JavaRenderer.analyzed_column = null;
         JavaRenderer.score = null;
         JavaRenderer.speed = 0.001;
         Ai.history_moves.clear();
         new_game.visible = false;
-        analyze_button.visible = false;
+        sandbox.visible = false;
         multiplayer.visible = false;
-        change.visible = false;
         back.visible = true;
         tutorial_button.visible = false;
         color_move_white.visible = false;
         color_move_black.visible = false;
-        color_play_white.visible = false;
-        color_play_black.visible = false;
     }
 
     static void display(GL2 gl) {
@@ -370,17 +474,14 @@ public class Menu {
         square(textures[FON], -1, 1, -0.75, -1);
         square(textures[FON], 1, 1, 0.75, -1);
         new_game.display();
-        analyze_button.display();
+        sandbox.display();
         multiplayer.display();
-        change.display();
         back.display();
         white.display();
         black.display();
         exit.display();
         tutorial_button.display();
         color_move_black.display();
-        color_play_black.display();
-        color_play_white.display();
         color_move_white.display();
         arrow_back.display();
         arrow_forward.display();
@@ -390,10 +491,18 @@ public class Menu {
         start_game.display();
         profile.display();
         logOut.display();
+        play_button.display();
+        editor_button.display();
+        back_sandbox.display();
+        delete.display();
+        clear.display();
+        start_analyze.display();
+        stop_analyze.display();
+        load.display();
+        save.display();
 
         if (changingPos) {
-            printStr("Next Move:", -.98, .55, true);
-            printStr("Color you play:", -.98, .25, true);
+            printStr("Next Move:", -.95, .35, true);
         }
 
         if (JavaRenderer.position.allOnGround()) {
@@ -407,12 +516,19 @@ public class Menu {
         if (thinking)
             square(textures[WAIT], 0.36, -0.77, .75, -1);
 
+        if (ConnectServer.opp_rec)
+            square(textures[OPPONENT_RECORDING], -.75, -.8, -.3, -1);
+        else if (ConnectServer.playback)
+            square(textures[PLAYBACK], -.75, -.8, -.3, -1);
+        else if (RecordVoice.pressed_R)
+            square(textures[YOU_RECORDING], -.75, -.8, -.3, -1);
+
         printStr(message, -.72, -.97);
 
     }
 
     static void printStr(String str, double x, double y) {
-        printStr(str,x,y,false);
+        printStr(str, x, y, false);
     }
 
     static void printStr(String str, double x, double y, boolean black) {
@@ -459,8 +575,7 @@ public class Menu {
     }
 
     public abstract static class Button extends Button_class {
-        Button(int name, int texture, double xc, double yc, double width, double ratio, boolean visible) {
-            super.name = name;
+        Button(int texture, double xc, double yc, double width, double ratio, boolean visible) {
             super.x1 = xc - width / 2;
             super.y1 = yc + width * ratio / 2;
             super.x2 = xc + width / 2;
@@ -471,7 +586,6 @@ public class Menu {
     }
 
     public abstract static class Button_class {
-        int name = 0;
         double x1 = 0;
         double y1 = 0;
         double x2 = 0;
@@ -517,7 +631,7 @@ public class Menu {
         int family;
         String text;
 
-       private static ArrayList<RadioButton> radioButtons = new ArrayList<>();
+        private static ArrayList<RadioButton> radioButtons = new ArrayList<>();
 
         RadioButton(double x, double y, boolean activate, boolean visible, int family, String text) {
             this.x = x;
@@ -539,7 +653,7 @@ public class Menu {
                 else
                     square(textures[RADIO_BUTTON_OFF], x + size, y + size, x - size, y - size);
                 gl.glDisable(GL2.GL_ALPHA_TEST);
-                printStr(text,x+size+.01,y-size,true);
+                printStr(text, x + size + .01, y - size, true);
                 if (JavaRenderer.mouse_click != null && JavaRenderer.mouse_click[0] >= x - size && JavaRenderer.mouse_click[0] <= x + size && JavaRenderer.mouse_click[1] <= y + size && JavaRenderer.mouse_click[1] >= y - size) {
                     sounds("click");
                     JavaRenderer.mouse_click = null;
