@@ -5,7 +5,7 @@ import java.util.ArrayList;
 class Eval {
 
     private static long[] sides = new long[2];
-    private static double log2 = Math.log(2);
+
 
     static int evaluate(BitBoard bitBoard) {
 
@@ -13,7 +13,7 @@ class Eval {
         sides[1] = bitBoard.black;
         long all = bitBoard.white | bitBoard.black;
 
-        ArrayList<DeadD> deadDS = new ArrayList<>();
+        ArrayList<DeadLines> deadLines = new ArrayList<>();
 
         int score = 0;
 
@@ -21,7 +21,7 @@ class Eval {
 
         for (long side : sides) {
             for (int i = 10; i < 60; i++)
-                if ((white && ((i>=20 && i<30) || i>=40)) || (!white && (i<20 || i>=30))) {
+                if (i>=20 && i<60) {
                     long[][] d = Mask.under_diagonals[i];
                     int count = 0;
                     long mask_empty_cell = 0;
@@ -33,34 +33,48 @@ class Eval {
                                 mask_empty_cell = d[j][1];
                         }
                         if (count==4)
-                    deadDS.add(new DeadD(countSides, mask_empty_cell, white));
+                    deadLines.add(new DeadLines(countSides, mask_empty_cell, white));
                 }
             white = false;
         }
+        int preparedWhiteDeadLinesHeight2 = 0;
+        int preparedBlackDeadLinesHeight2 = 0;
+        boolean preparedBlackDeadLinesHeight13 = false;
 
-        for (DeadD deadD : deadDS)
-            if (deadD.count == 3){
-                int height = (int)Math.round(Math.log(deadD.mask_empty_cell)/log2) >> 4;
-                if ((height == 2) == deadD.white)
-                    score += (deadD.white) ? 100 : -100;
-            } else if (deadD.count == 2)
-                    score += (deadD.white) ? 10 : -10;
-               else if (deadD.count == 1)
-                    score += (deadD.white) ? 1 : -1;
+        for (DeadLines deadLine : deadLines)
+            if (deadLine.count == 3){
+                if (deadLine.white && deadLine.height == 2)
+                    preparedWhiteDeadLinesHeight2++;
+                else if (!deadLine.white && deadLine.height == 2)
+                    preparedBlackDeadLinesHeight2++;
+                if (!deadLine.white && deadLine.height != 2)
+                    preparedBlackDeadLinesHeight13 = true;
+                score += (deadLine.white) ? 100 : -100;
+            } else if (deadLine.count == 2)
+                    score += (deadLine.white) ? 10 : -10;
+               else if (deadLine.count == 1)
+                    score += (deadLine.white) ? 1 : -1;
+
+        if (preparedWhiteDeadLinesHeight2 > preparedBlackDeadLinesHeight2)
+            score += 1000;
+        else if (preparedBlackDeadLinesHeight13)
+            score -= 1000;
 
         return score;
     }
 }
 
-class DeadD{
+class DeadLines {
+    private static double log2 = Math.log(2);
+
     int count;
-    long mask_empty_cell;
     boolean white;
+    int height;
 
 
-    DeadD(int count, long mask_empty_cell, boolean white){
+    DeadLines(int count, long mask_empty_cell, boolean white){
         this.count = count;
-        this.mask_empty_cell = mask_empty_cell;
         this.white = white;
+        this.height = (int)Math.round(Math.log(mask_empty_cell)/log2) >> 4;
     }
 }

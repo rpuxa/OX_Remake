@@ -34,6 +34,7 @@ public class Play implements Runnable {
         BitBoard bitBoard = BitBoard.make_bitboard_from_bitboard(JavaRenderer.position.bitBoard);
         boolean white = JavaRenderer.position.human_plays_for_white;
         boolean isTurnWhite = JavaRenderer.position.isTurnWhite;
+        Position.add_to_history_positions(JavaRenderer.position,true);
         while (true){
             if (!first || isTurnWhite == white) {
                 while (JavaRenderer.column_chosen == null) {
@@ -53,6 +54,9 @@ public class Play implements Runnable {
                 JavaRenderer.position.balls.add(new Ball(n, white));
                 JavaRenderer.position.bitBoard = BitBoard.make_bitboard_from_bitboard(bitBoard);
                 JavaRenderer.position.isTurnWhite = ! JavaRenderer.position.isTurnWhite;
+
+                checkEnd(bitBoard);
+                Position.add_to_history_positions(JavaRenderer.position,false);
 
                 if (checkEnd(bitBoard))
                     break;
@@ -82,6 +86,10 @@ public class Play implements Runnable {
             JavaRenderer.position.balls.add(new Ball(num[0],!white));
             JavaRenderer.position.bitBoard = BitBoard.make_bitboard_from_bitboard(bitBoard);
             JavaRenderer.position.isTurnWhite = ! JavaRenderer.position.isTurnWhite;
+
+            checkEnd(bitBoard);
+            Position.add_to_history_positions(JavaRenderer.position,false);
+
 
             if (checkEnd(bitBoard))
                 break;

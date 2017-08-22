@@ -16,6 +16,7 @@ import java.io.*;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class ConnectServer implements Runnable {
 
@@ -30,7 +31,6 @@ public class ConnectServer implements Runnable {
     public static final int UNCORRECTED_LOGIN_OR_PASSWORD = 6;
     private static final int ACCOUNT_CREATED = 7;
     static final int UPDATE_PROFILE = 8;
-    private static final int START_SEARCH_OPPONENT = 9;
     private static final int BEGIN_GAME_FOR_WHITE = 10;
     private static final int BEGIN_GAME_FOR_BLACK = 11;
     private static final int LOST_CONNECTION = 12;
@@ -46,15 +46,29 @@ public class ConnectServer implements Runnable {
     private final static int LOG_OUT = 20;
     public final static int CHAT_AUDIO = 21;
     public final static int CHAT_AUDIO_OPPONENT_RECORDING = 22;
+    public final static int SET_TIME = 23;
+    public final static int TIME_END = 24;
+    final static int UPDATE_PLAYER_LIST = 25;
+    final static int INVITE_OPPONENT = 26;
+    private final static int START_GAME_WITH_OPPONENT = 27;
+    private final static int PLAYER_NOT_FOUND = 28;
+    final static int GET_PLAYER_PROFILE = 29;
+    private final static int SET_YOUR_ID = 30;
     public static Thread moveListener = new Thread();
-    public static Chat chat;
-    public static Versus versus;
+    public static Chat chat = new Chat();
+    public static Versus versus = new Versus();
+    public static Time time = new Time();
+    public static Lobby lobby = new Lobby(new ArrayList<>(),0);
     public static ObjectOutputStream out;
     public static ObjectInputStream in;
     public static boolean isEndGame = false;
     public static boolean opp_found = false;
     public static boolean playback = false;
     public static boolean opp_rec = false;
+    private static Thread ourTime = new Thread();
+    private static Thread oppTime = new Thread();
+    private long ID = 0;
+    private int playTime = 600;
 
     @Override
     public void run() {
@@ -74,6 +88,7 @@ public class ConnectServer implements Runnable {
             }
 
             message = null;
+            JavaDia.scroll_lobby.setVisible(true);
 
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
@@ -83,12 +98,14 @@ public class ConnectServer implements Runnable {
                     Object data = server_command.getData();
                     switch (server_command.getCommand()) {
                         case BEGIN_GAME_FOR_WHITE: {
+                            playTime = (int) data;
                             beginGame(true);
                             break;
                         }
                         case BEGIN_GAME_FOR_BLACK: {
-                           beginGame(false);
-                           break;
+                            playTime = (int) data;
+                            beginGame(false);
+                            break;
                         }
                         case LOST_CONNECTION: {
                             endGame(null);
@@ -171,8 +188,33 @@ public class ConnectServer implements Runnable {
                             JavaRenderer.position.bitBoard = BitBoard.make_bitboard_from_bitboard(bitBoard);
                             if (!Play.checkEnd(bitBoard)) {
                                 versus.swapMove();
-                            } else
+                            } else {
+                                endGame(null);
                                 addResult(checkEnd());
+                            }
+                            Position.add_to_history_positions(JavaRenderer.position,false);
+                            break;
+                        }
+
+                        case SET_TIME: {
+                            long oppTime = (long) (data);
+                            ourTime = new Thread(() -> time.startTime(JavaRenderer.position.human_plays_for_white,true));
+                            ourTime.start();
+                            ConnectServer.oppTime.join();
+                            if (JavaRenderer.position.human_plays_for_white)
+                                time.setTimeBlack(oppTime);
+                            else
+                                time.setTimeWhite(oppTime);
+                            break;
+                        }
+
+                        case TIME_END: {
+                            endGame((!JavaRenderer.position.human_plays_for_white) ? Position.BLACK_WINS : Position.WHITE_WINS);
+                            JLabel label = (JavaRenderer.position.human_plays_for_white) ? time.timeBlackLabel : time.timeWhiteLabel;
+                            label.setText("Zeit");
+                            UIManager.put("OptionPane.okButtonText", "ОК");
+                            addResult(1);
+                            JOptionPane.showConfirmDialog(null, "У противника вышло время! Вы победили!", "Сетевая игра", JOptionPane.PLAIN_MESSAGE, JOptionPane.CLOSED_OPTION);
                             break;
                         }
 
@@ -261,6 +303,54 @@ public class ConnectServer implements Runnable {
                             }
                             break;
                         }
+
+                        case UPDATE_PLAYER_LIST: {
+                            JavaDia.scroll_lobby.remove(lobby);
+                            lobby = new Lobby((ArrayList<Player>) data,ID);
+                            JavaDia.scroll_lobby.add(lobby);
+                            lobby.setBounds(0,0,310,300);
+                            JavaDia.scroll_lobby.repaint();
+                            JavaDia.scroll_lobby.revalidate();
+                            break;
+                        }
+
+                        case GET_PLAYER_PROFILE:{
+                            new ProfileWindow((Profile) data,null);
+                            break;
+                        }
+
+                        case SET_YOUR_ID:{
+                            ID = (long) data;
+                            break;
+                        }
+
+                        case PLAYER_NOT_FOUND:{
+                            JOptionPane.showMessageDialog(null, "Игрок не найден!\nВозможно он вышел из игры", "Лобби", JOptionPane.ERROR_MESSAGE);
+                            break;
+                        }
+
+                        case INVITE_OPPONENT:{
+                            UIManager.put("OptionPane.yesButtonText", "Согласиться");
+                            UIManager.put("OptionPane.noButtonText", "Отказаться");
+                            Invite invite = (Invite) data;
+                            String color;
+                            if (invite.getSide() == Invite.RANDOM)
+                                color = "произвольный";
+                            else if (invite.getSide() == Invite.WHITE)
+                                color = "черный";
+                            else
+                                color = "белый";
+
+                            String[] message = {"Оппонент " + invite.getPlayer().getName() + " с рейтингом " + invite.getPlayer().getRating(),
+                            "приглашает вас в игру с данными настройками:",
+                            "Ваш цвет: " + color,
+                            "Контроль времени: " + invite.getTime()/60 +"min. " + invite.getTime()%60 + "sec."};
+                            if (JOptionPane.showConfirmDialog(null, message, "Сетевая игра", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.YES_OPTION) {
+                                out.writeObject(new ServerCommand(invite,START_GAME_WITH_OPPONENT));
+                                out.flush();
+                            }
+                            break;
+                        }
                     }
                 } catch (IOException e) {
                     message = "Lost connection with server.";
@@ -286,9 +376,9 @@ public class ConnectServer implements Runnable {
         JavaRenderer.position = Position.make_position_empty(white, true);
         moveListener = new Thread(new MoveListener(out));
         moveListener.start();
-        if (chat == null)
-            chat = new Chat(out);
+        chat.setOut(out);
         showVersus();
+        time.setBeginTime(playTime);
         Menu.sounds("begin_game");
         Menu.resign.visible = true;
         Menu.offer.visible = true;
@@ -300,18 +390,21 @@ public class ConnectServer implements Runnable {
             }
             message = null;
         }).start();
+        Position.add_to_history_positions(JavaRenderer.position,true);
+
     }
 
     private static void showVersus(){
         try {
-            versus.setVisible(false);
+            if (JavaRenderer.position.human_plays_for_white)
+                versus.setProfiles(Chat.myProfile, chat.opponentProfile);
+            else
+                versus.setProfiles(chat.opponentProfile, Chat.myProfile);
         } catch (NullPointerException ignored) {
         }
+
         try {
-            if (JavaRenderer.position.human_plays_for_white)
-                versus = new Versus(Chat.myProfile, chat.opponentProfile);
-            else
-                versus = new Versus(chat.opponentProfile, Chat.myProfile);
+            versus.setVisible(true);
         } catch (NullPointerException ignored) {
         }
     }
@@ -356,7 +449,8 @@ public class ConnectServer implements Runnable {
 
     private static void endGame(Integer result){
         if (result != null)
-        JavaRenderer.position.end_game = result;
+            JavaRenderer.position.end_game = result;
+        time.stop();
         isEndGame = true;
         Menu.resign.visible = false;
         Menu.offer.visible = false;
@@ -364,19 +458,23 @@ public class ConnectServer implements Runnable {
     }
 
     public static void startGame(){
+
+    }
+
+    static void zeit(){
         try {
-            Menu.start_game.visible = false;
-            Menu.profile.visible = false;
-            Menu.logOut.visible = false;
-            out.writeObject(new ServerCommand(null,START_SEARCH_OPPONENT));
+            out.writeObject(new ServerCommand(null,TIME_END));
             out.flush();
-            message = "Searching opponents... Please wait.";
-        } catch (Exception ignore){
+        } catch (IOException e) {
         }
+        endGame((JavaRenderer.position.human_plays_for_white) ? Position.BLACK_WINS : Position.WHITE_WINS);
+        UIManager.put("OptionPane.okButtonText", "ОК");
+        addResult(-1);
+        JOptionPane.showConfirmDialog(null, "У вас вышло время. Вы проиграли.", "Сетевая игра", JOptionPane.PLAIN_MESSAGE, JOptionPane.CLOSED_OPTION);
     }
 
     public static void showProfile(){
-        new ProfileWindow(Chat.myProfile,out, JavaDia.frame);
+        new ProfileWindow(Chat.myProfile,out);
     }
 
     public static void logOut(){
@@ -451,8 +549,13 @@ public class ConnectServer implements Runnable {
                             endGame(null);
                         } else
                             versus.swapMove();
-
+                        Position.add_to_history_positions(JavaRenderer.position,false);
                         out.writeObject(new ServerCommand(move,SEND_MOVE));
+                        out.flush();
+                        oppTime = new Thread(() -> time.startTime(!JavaRenderer.position.human_plays_for_white,false));
+                        oppTime.start();
+                        ourTime.join();
+                        out.writeObject(new ServerCommand((JavaRenderer.position.human_plays_for_white) ? time.getTimeWhite() : time.getTimeBlack(),SET_TIME));
                         out.flush();
                     }
                     Thread.sleep(100);
@@ -460,6 +563,7 @@ public class ConnectServer implements Runnable {
                         return;
                 }
             } catch (Exception ignored) {
+                ignored.printStackTrace();
             }
         }
     }

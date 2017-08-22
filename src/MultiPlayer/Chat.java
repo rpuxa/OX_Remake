@@ -1,16 +1,12 @@
 package MultiPlayer;
 
-
-import Jogl.JavaDia;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.DataOutputStream;
 import java.io.ObjectOutputStream;
 import java.util.Objects;
 
-public class Chat extends JFrame {
+public class Chat extends JPanel {
 
     private JTextArea textChat;
     private JTextArea textMessage;
@@ -18,17 +14,13 @@ public class Chat extends JFrame {
     public static Profile myProfile;
     public Profile opponentProfile;
     private Boolean lastMessageFromOpponent = null;
+    private ObjectOutputStream out;
 
-    Chat(ObjectOutputStream out) {
-        super("Чат");
-        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-
-        JPanel contents = new JPanel();
-
-        textChat = new JTextArea("", 19, 16);
+    Chat() {
+        textChat = new JTextArea("", 19, 17);
         textChat.setLineWrap(true);
         textChat.setEnabled(false);
-        textChat.setFont(new Font(Font.DIALOG, Font.PLAIN, 17));
+        textChat.setFont(new Font(Font.DIALOG, Font.PLAIN, 15));
         JScrollPane pane1 = new JScrollPane(textChat);
         textMessage = new JTextArea(ENTER_MESSAGE, 3, 20);
         textMessage.setLineWrap(true);
@@ -87,17 +79,14 @@ public class Chat extends JFrame {
         this.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-
             }
 
             @Override
             public void mousePressed(MouseEvent e) {
-
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-
             }
 
             @Override
@@ -107,37 +96,34 @@ public class Chat extends JFrame {
 
             @Override
             public void mouseExited(MouseEvent e) {
-
             }
         });
 
         JScrollPane pane2 = new JScrollPane(textMessage);
-        contents.add(pane1, BorderLayout.CENTER);
-        contents.add(pane2, BorderLayout.CENTER);
-        contents.add(textMessage);
-
-        setContentPane(contents);
+        add(pane1, BorderLayout.CENTER);
+        add(pane2, BorderLayout.CENTER);
 
         setSize(241, 510);
-
-        setResizable(false);
-
-        setUndecorated(true);
-
-        setLocation(JavaDia.frame.getLocation());
-
-        setAlwaysOnTop(true);
-
-        setVisible(true);
+        setVisible(false);
     }
 
-    @Override
-    public void setLocation(Point point) {
-        super.setLocation((int) (JavaDia.frame.getWidth() - getWidth() + point.getX()) - 7, (int) (JavaDia.frame.getHeight() - getHeight() + point.getY()) - 8);
+    public void setOut(ObjectOutputStream out) {
+        this.out = out;
+    }
+
+    public void setLoc(Dimension d) {
+        super.setBounds((int)d.getWidth()-241,(int)d.getHeight()-510,241,510);
     }
 
     void setOpponentProfile(Profile profile) {
         this.opponentProfile = profile;
+        textChat.setText("");
+        textMessage.setText("");
+        textMessage.setEnabled(false);
+        textMessage.setText(ENTER_MESSAGE);
+        textMessage.setEnabled(false);
+        textMessage.setForeground(new Color(131, 131, 131));
+        setVisible(true);
     }
 
     void showMessage(String massage) {

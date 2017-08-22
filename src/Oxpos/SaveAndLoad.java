@@ -17,10 +17,11 @@ public class SaveAndLoad {
         UIManager.put("FileChooser.saveInLabelText", "Сохранить в директории");
         UIManager.put("FileChooser.folderNameLabelText", "Путь директории");
         FileNameExtensionFilter filter = new FileNameExtensionFilter("*.oxpos", "oxpos");
-        JFileChooser fc = new JFileChooser();
-        fc.setFileFilter(filter);
-        if ( fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION ) {
-            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fc.getSelectedFile().getAbsolutePath() + ".oxpos"))) {
+        JFileChooser fileSave = new JFileChooser();
+        fileSave.setFileFilter(filter);
+        fileSave.setCurrentDirectory(new File("SavedGames"));
+        if ( fileSave.showSaveDialog(null) == JFileChooser.APPROVE_OPTION ) {
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileSave.getSelectedFile().getAbsolutePath() + ".oxpos"))) {
                 oos.writeObject(new OxposFile(JavaRenderer.game,JavaRenderer.moveNumber));
                 JOptionPane.showMessageDialog(null , "Сохранение произошло успешно!", "Сохранить", JOptionPane.INFORMATION_MESSAGE);
             }
@@ -41,6 +42,7 @@ public class SaveAndLoad {
         FileNameExtensionFilter filter = new FileNameExtensionFilter("*.oxpos", "oxpos");
         JFileChooser fileOpen = new JFileChooser();
         fileOpen.setFileFilter(filter);
+        fileOpen.setCurrentDirectory(new File("SavedGames"));
         int ret = fileOpen.showDialog(null, "Открыть файл");
         if (ret == JFileChooser.APPROVE_OPTION) {
             try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileOpen.getSelectedFile()))) {

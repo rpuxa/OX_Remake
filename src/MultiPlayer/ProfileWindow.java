@@ -9,8 +9,8 @@ import java.io.ObjectOutputStream;
 
 public class ProfileWindow{
 
-    ProfileWindow(Profile profile, ObjectOutputStream out, Frame owner) {
-        JDialog frame = new JDialog(owner,"Профиль игрока " + profile.nick);
+    ProfileWindow(Profile profile, ObjectOutputStream out) {
+        JFrame frame = new JFrame("Профиль игрока " + profile.nick);
 
         final Dimension screenSize = frame.getToolkit().getScreenSize();
 
@@ -145,7 +145,6 @@ public class ProfileWindow{
         });
 
         frame.setVisible(true);
-      //  frame.setModal(true);
     }
 
 

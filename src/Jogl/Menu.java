@@ -14,17 +14,18 @@ import com.jogamp.opengl.util.gl2.GLUT;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import static MultiPlayer.ConnectServer.chat;
-import static MultiPlayer.ConnectServer.versus;
 import PlayEngine.ChoseDif;
+
+import static MultiPlayer.ConnectServer.*;
 
 public class Menu {
 
-    static int[] textures = new int[35];
+    static int[] textures = new int[36];
 
     private static final int NEW_GAME = 1;
     private static final int FON = 2;
@@ -177,15 +178,20 @@ public class Menu {
                 JavaRenderer.isScreensaverOn = true;
                 try {
                     chat.setVisible(false);
-                    chat = null;
                 } catch (NullPointerException ignore) {
                 }
                 try {
                     versus.setVisible(false);
-                    versus = null;
                 } catch (NullPointerException ignore) {
                 }
-
+                try {
+                    time.setVisible(false);
+                } catch (NullPointerException ignore) {
+                }
+                try {
+                    JavaDia.scroll_lobby.setVisible(false);
+                } catch (NullPointerException ignore) {
+                }
                 screensaver = new Thread(new Screensaver());
                 screensaver.start();
 
@@ -500,9 +506,8 @@ public class Menu {
         stop_analyze.display();
         load.display();
         save.display();
-
         if (changingPos) {
-            printStr("Next Move:", -.95, .35, true);
+            printStr("Next Move:", -.95, .35);
         }
 
         if (JavaRenderer.position.allOnGround()) {
@@ -523,19 +528,12 @@ public class Menu {
         else if (RecordVoice.pressed_R)
             square(textures[YOU_RECORDING], -.75, -.8, -.3, -1);
 
-        printStr(message, -.72, -.97);
+        printStr(message, -.72, -.85);
 
     }
 
     static void printStr(String str, double x, double y) {
-        printStr(str, x, y, false);
-    }
-
-    static void printStr(String str, double x, double y, boolean black) {
-        if (black)
-            gl.glColor3f(0, 0, 0);
-        else
-            gl.glColor3f(1, 1, 1);
+        gl.glColor3f(1, 1, 1);
         if (str != null) {
             gl.glRasterPos2d(x, y);
             for (int i = 0; i < str.length(); i++)
@@ -574,24 +572,26 @@ public class Menu {
 
     }
 
-    public abstract static class Button extends Button_class {
-        Button(int texture, double xc, double yc, double width, double ratio, boolean visible) {
-            super.x1 = xc - width / 2;
-            super.y1 = yc + width * ratio / 2;
-            super.x2 = xc + width / 2;
-            super.y2 = yc - width * ratio / 2;
-            super.texture = texture;
-            super.visible = visible;
-        }
-    }
-
-    public abstract static class Button_class {
+    public abstract static class Button {
         double x1 = 0;
         double y1 = 0;
         double x2 = 0;
         double y2 = 0;
         int texture = 0;
         public boolean visible;
+        double width;
+        double ratio;
+
+        Button(int texture, double xc, double yc, double width, double ratio, boolean visible) {
+            x1 = xc - width / 2;
+            y1 = yc + width * ratio / 2;
+            x2 = xc + width / 2;
+            y2 = yc - width * ratio / 2;
+            this.texture = texture;
+            this.visible = visible;
+            this.width = width;
+            this.ratio = ratio;
+        }
 
         void display() {
             if (visible) {
@@ -618,6 +618,12 @@ public class Menu {
 
                 Menu.square(texture, x1, y1, x2, y2);
             }
+        }
+
+        void setLocation(int height, double minus){
+            double yc = 1 - 2 * 200.0/height - minus;
+            y1 = yc + width * ratio / 2;
+            y2 = yc - width * ratio / 2;
         }
 
         public abstract void click();
@@ -653,7 +659,7 @@ public class Menu {
                 else
                     square(textures[RADIO_BUTTON_OFF], x + size, y + size, x - size, y - size);
                 gl.glDisable(GL2.GL_ALPHA_TEST);
-                printStr(text, x + size + .01, y - size, true);
+                printStr(text, x + size + .01, y - size);
                 if (JavaRenderer.mouse_click != null && JavaRenderer.mouse_click[0] >= x - size && JavaRenderer.mouse_click[0] <= x + size && JavaRenderer.mouse_click[1] <= y + size && JavaRenderer.mouse_click[1] >= y - size) {
                     sounds("click");
                     JavaRenderer.mouse_click = null;

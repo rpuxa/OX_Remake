@@ -14,8 +14,7 @@ import com.jogamp.opengl.awt.GLCanvas;
 import javax.swing.*;
 
 import static MultiPlayer.AudioChat.RecordVoice.targetDataLine;
-import static MultiPlayer.ConnectServer.chat;
-import static MultiPlayer.ConnectServer.versus;
+import static MultiPlayer.ConnectServer.*;
 
 
 public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotionListener, MouseWheelListener {
@@ -28,6 +27,7 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
     private static final double pi = 3.141592;
     public static JFrame frame;
     static JFrame loading;
+    public static JPanel scroll_lobby = new JPanel();
     static {
         new Thread(() -> {
             loading = new JFrame();
@@ -43,33 +43,52 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
         }).start();
     }
 
+    public static void main(String[] args) {
+    }
+
     public void run() {
         frame = new JFrame("OX3D_OpenGL");
         int size = frame.getExtendedState();
         canvas.addGLEventListener(new JavaRenderer());
+        frame.setLayout(null);
+        frame.add(ConnectServer.chat);
+        scroll_lobby.add(ConnectServer.lobby);
+        ConnectServer.lobby.setBounds(0,0,310,300);
+        scroll_lobby.setLayout(null);
+        scroll_lobby.setSize(310,300);
+        scroll_lobby.setVisible(false);
+        frame.add(scroll_lobby);
+        frame.add(ConnectServer.time);
+        frame.add(ConnectServer.versus);
         frame.add(canvas);
+        ConnectServer.versus.setBounds(0,0,241,200);
         size |= Frame.MAXIMIZED_BOTH;
         frame.setExtendedState(size);
         frame.addComponentListener(new ComponentListener() {
             @Override
             public void componentResized(ComponentEvent e) {
+                canvas.setBounds(0,0,JavaDia.frame.getWidth(),JavaDia.frame.getHeight());
                 try{
-                    chat.setLocation(JavaDia.frame.getLocation());
+                    chat.setLoc(JavaDia.frame.getSize());
                 } catch (NullPointerException ignore){
+                }
+                try{
+                    time.setLoc(JavaDia.frame.getSize());
+                } catch (NullPointerException ignore){
+                }
+                try{
+                    scroll_lobby.setLocation(frame.getWidth()-scroll_lobby.getWidth(),0);
+                } catch (NullPointerException ignore){
+                }
+                try {
+                    Menu.resign.setLocation(frame.getHeight(),.1);
+                    Menu.offer.setLocation(frame.getHeight(),.2);
+                    Menu.rematch.setLocation(frame.getHeight(),.1);
+                } catch (Exception e1) {
                 }
             }
             @Override
-            public void componentMoved(ComponentEvent e) {
-                try{
-                    chat.setLocation(JavaDia.frame.getLocation());
-                } catch (NullPointerException ignore){
-                }
-
-                try{
-                    versus.setLocation(JavaDia.frame.getLocation());
-                } catch (NullPointerException ignore){
-                }
-            }
+            public void componentMoved(ComponentEvent e) {}
             @Override
             public void componentShown(ComponentEvent e) {}
             @Override

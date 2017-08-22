@@ -8,6 +8,7 @@ import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.glu.GLU;
+import com.jogamp.opengl.util.gl2.GLUT;
 import com.jogamp.opengl.util.texture.TextureIO;
 import com.jogamp.opengl.util.texture.Texture;
 import javafx.geometry.Point3D;
@@ -61,14 +62,14 @@ public class JavaRenderer implements GLEventListener {
         gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
 
-        Menu.display(gl);
-
         if (analyzed_column != null && depth != null && score != null) {
-                boolean mate = score > 20000 || score < -20000;
+            boolean mate = score > 20000 || score < -20000;
 
-                String analyze = "depth: " + depth + " score: " + ((mate) ? "#" + (30000*Math.abs(score)/score - score):"" + score);
-                Menu.printStr(analyze,-.72, -.97);
-            }
+            String analyze = "depth: " + depth + " score: " + ((mate) ? "#" + (30000*Math.abs(score)/score - score):"" + score);
+            Menu.printStr(analyze,-.72, -.85);
+        }
+
+        Menu.display(gl);
 
         glu.gluPerspective(50, h, 1f, 10f);
 
@@ -79,6 +80,8 @@ public class JavaRenderer implements GLEventListener {
         gl.glRotatef((float) (180 * AbsAngleY / pi), 0.0f, 1.0f, 0.0f);
 
         gl.glRotatef((float) (180 * AbsAngleZ / pi), 0.0f, 0.0f, 1.0f);
+
+        cordinates(gl);
 
         if (analyzed_column != null)
             arrow(gl, -0.6f + 0.4f * (3 - analyzed_column % 4), -0.6f + 0.4f * (analyzed_column / 4), 2.25f);
@@ -149,8 +152,8 @@ public class JavaRenderer implements GLEventListener {
                 ellipse(gl, ball.white, ball.x, ball.y, ball.z, ball.getColumn());
             }
         }
-        if (JavaDia.loading.isVisible())
-            JavaDia.loading.setVisible(false);
+      //  if (JavaDia.loading.isVisible())
+     //       JavaDia.loading.setVisible(false);
     }
 
     private void arrow(GL2 gl, float x, float y, float z) {
@@ -275,6 +278,22 @@ public class JavaRenderer implements GLEventListener {
         gl.glVertex3f(x + size / 12, y - size / 12, z + size / 2);
         gl.glVertex3f(x - size / 12, y - size / 12, z + size / 2);
         gl.glEnd();
+    }
+
+    private void cordinates(GL2 gl){
+        gl.glColor3f(1,1,1);
+        GLUT glut = new GLUT();
+
+        for (int j = -1; j <= 1; j+=2) {
+            for (int i = 0; i < 4; i++) {
+                gl.glRasterPos3d(j * .8f, -.6f + .4f * i, .13f);
+                glut.glutBitmapCharacter(GLUT.BITMAP_TIMES_ROMAN_24, (char) ('A' + i));
+            }
+            for (int i = 0; i < 4; i++) {
+                gl.glRasterPos3d(-.6f + .4f * i,j * .8f, .13f);
+                glut.glutBitmapCharacter(GLUT.BITMAP_TIMES_ROMAN_24, (char) ('1' + i));
+            }
+        }
     }
 
     private void ellipse(GL2 gl, boolean white, float x, float y, float z, int column) {
@@ -414,7 +433,6 @@ public class JavaRenderer implements GLEventListener {
         return z1 >= z - height / 2 && z1 <= z + height / 2 && ((x - x1) * (x - x1) + (y - y1) * (y - y1) <= radius * radius);
     }
 
-
     public void init(GLAutoDrawable gLDrawable) {
         final GL2 gl = gLDrawable.getGL().getGL2();
         gl.glShadeModel(GL2.GL_SMOOTH);
@@ -429,7 +447,7 @@ public class JavaRenderer implements GLEventListener {
         try {
             String[] names = {"NewGame", "fon", "sandbox", "MultiPlayer", "play", "Exit", "Back", "White", "Black", "BlackWins", "WhiteWins", "Draw", "wait"
                     ,"Tutorial","radio_on","radio_off","arrow_right","arrow_left","resign","offer","rematch","start","profile","log_out","opp_rec","my_rec",
-                    "playback","editor","save","load","start_analyze","stop_analyze","delete","clear"};
+                    "playback","editor","save","load","start_analyze","stop_analyze","delete","clear","background"};
             int type = 1;
             for (String name : names) {
                 File im = new File("Images/" + name + ".png");
@@ -440,7 +458,6 @@ public class JavaRenderer implements GLEventListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         Menu.create();
     }
 
@@ -454,6 +471,5 @@ public class JavaRenderer implements GLEventListener {
         gl.glLoadIdentity();
     }
 
-    public void dispose(GLAutoDrawable arg0) {
-    }
+    public void dispose(GLAutoDrawable arg0) {}
 }

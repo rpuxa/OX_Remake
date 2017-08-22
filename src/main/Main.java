@@ -31,7 +31,7 @@ public class Main {
                     rec = true;
             }
             ConnectServer.ipAddress = InetAddress.getByName(ip);
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.out.println("Не удалось загрузить config файл");
         }
     }
