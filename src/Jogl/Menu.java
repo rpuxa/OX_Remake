@@ -14,7 +14,6 @@ import com.jogamp.opengl.util.gl2.GLUT;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -80,7 +79,6 @@ public class Menu {
     public static Button resign;
     public static Button offer;
     public static Button rematch;
-    public static Button start_game;
     public static Button profile;
     public static Button logOut;
     private static Button editor_button;
@@ -96,7 +94,7 @@ public class Menu {
     public static Thread play = new Thread();
     private static Thread editor = new Thread();
     private static Thread multi = new Thread();
-    private static Thread tutorial = new Thread();
+    static Thread tutorial = new Thread();
     static Thread sandbox_thread = new Thread();
     static Thread screensaver = new Thread();
     public static boolean isInterrupted = false;
@@ -190,6 +188,7 @@ public class Menu {
                 }
                 try {
                     JavaDia.scroll_lobby.setVisible(false);
+                    JavaDia.scroll_lobby.remove(lobby);
                 } catch (NullPointerException ignore) {
                 }
                 screensaver = new Thread(new Screensaver());
@@ -301,14 +300,7 @@ public class Menu {
             }
         };
 
-        start_game = new Button(textures[START_GAME], -.875, .8, 0.2, 78.0 / 200, false) {
-            @Override
-            public void click() {
-                ConnectServer.startGame();
-            }
-        };
-
-        profile = new Button(textures[PROFILE], -.875, .7, 0.2, 78.0 / 200, false) {
+        profile = new Button(textures[PROFILE], -.875, .8, 0.2, 78.0 / 200, false) {
             @Override
             public void click() {
                 ConnectServer.showProfile();
@@ -437,7 +429,6 @@ public class Menu {
         arrow_forward.visible = false;
         white.visible = false;
         black.visible = false;
-        start_game.visible = false;
         profile.visible = false;
         editor_button.visible = false;
         delete.visible = false;
@@ -494,7 +485,6 @@ public class Menu {
         resign.display();
         rematch.display();
         offer.display();
-        start_game.display();
         profile.display();
         logOut.display();
         play_button.display();
@@ -522,11 +512,11 @@ public class Menu {
             square(textures[WAIT], 0.36, -0.77, .75, -1);
 
         if (ConnectServer.opp_rec)
-            square(textures[OPPONENT_RECORDING], -.75, -.8, -.3, -1);
+            square(textures[OPPONENT_RECORDING], -.75, -.7, -.3, -.9);
         else if (ConnectServer.playback)
-            square(textures[PLAYBACK], -.75, -.8, -.3, -1);
+            square(textures[PLAYBACK], -.75, -.7, -.3, -.9);
         else if (RecordVoice.pressed_R)
-            square(textures[YOU_RECORDING], -.75, -.8, -.3, -1);
+            square(textures[YOU_RECORDING], -.75, -.7, -.3, -.9);
 
         printStr(message, -.72, -.85);
 

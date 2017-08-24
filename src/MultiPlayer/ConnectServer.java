@@ -54,6 +54,7 @@ public class ConnectServer implements Runnable {
     private final static int PLAYER_NOT_FOUND = 28;
     final static int GET_PLAYER_PROFILE = 29;
     private final static int SET_YOUR_ID = 30;
+    private final static int INVITE_ACCEPT = 31;
     public static Thread moveListener = new Thread();
     public static Chat chat = new Chat();
     public static Versus versus = new Versus();
@@ -128,7 +129,6 @@ public class ConnectServer implements Runnable {
 
                         case SET_PROFILE: {
                             Chat.myProfile = (Profile) data;
-                            Menu.start_game.visible = true;
                             Menu.logOut.visible = true;
                             Menu.profile.visible = true;
                             break;
@@ -283,7 +283,6 @@ public class ConnectServer implements Runnable {
                                 if (serverCommand1.getCommand() == ACCOUNT_ALREADY_EXISTS)
                                     message = ACCOUNT_ALREADY_EXISTS;
                                 else if (serverCommand1.getCommand() == ACCOUNT_CREATED){
-                                    Menu.start_game.visible = true;
                                     Menu.profile.visible = true;
                                     Menu.logOut.visible = true;
                                     out.writeObject(new ServerCommand(NewAccount.profile,UPDATE_PROFILE));
@@ -294,7 +293,6 @@ public class ConnectServer implements Runnable {
                                 } else if (serverCommand1.getCommand() == UNCORRECTED_LOGIN_OR_PASSWORD) {
                                     message = UNCORRECTED_LOGIN_OR_PASSWORD;
                                 } else if (serverCommand1.getCommand() == SET_PROFILE){
-                                    Menu.start_game.visible = true;
                                     Menu.profile.visible = true;
                                     Menu.logOut.visible = true;
                                     Chat.myProfile = Profile.make_profile_from_profile((Profile) serverCommand1.getData());
@@ -351,6 +349,12 @@ public class ConnectServer implements Runnable {
                             }
                             break;
                         }
+
+                        case INVITE_ACCEPT: {
+                            out.writeObject(new ServerCommand(null,INVITE_ACCEPT));
+                            out.flush();
+                            break;
+                        }
                     }
                 } catch (IOException e) {
                     message = "Lost connection with server.";
@@ -378,6 +382,9 @@ public class ConnectServer implements Runnable {
         moveListener.start();
         chat.setOut(out);
         showVersus();
+        JavaDia.scroll_lobby.setVisible(false);
+        JavaDia.scroll_lobby.remove(lobby);
+        Menu.logOut.visible = false;
         time.setBeginTime(playTime);
         Menu.sounds("begin_game");
         Menu.resign.visible = true;

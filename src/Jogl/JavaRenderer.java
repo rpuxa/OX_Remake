@@ -152,8 +152,6 @@ public class JavaRenderer implements GLEventListener {
                 ellipse(gl, ball.white, ball.x, ball.y, ball.z, ball.getColumn());
             }
         }
-      //  if (JavaDia.loading.isVisible())
-     //       JavaDia.loading.setVisible(false);
     }
 
     private void arrow(GL2 gl, float x, float y, float z) {
@@ -424,7 +422,7 @@ public class JavaRenderer implements GLEventListener {
             gl.glColor3f(0.97f, 0.43f, 0.08f);
             if (analyzed_column != null && analyzed_column == num)
                 gl.glColor3f(0, 1, 0);
-            else if (lastMove == num && !Menu.changingPos)
+            else if (lastMove == num && !Menu.changingPos && !Menu.tutorial.isAlive())
                 gl.glColor3f(80f/255f, 103f/255f, 200f/255f);
         }
     }
