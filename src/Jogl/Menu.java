@@ -444,6 +444,8 @@ public class Menu {
             ConnectServer.out.close();
         } catch (Exception ignore) {
         }
+
+        Sandbox.tree.setVisible(false);
         while (sandbox_thread.isAlive() || play.isAlive() || multi.isAlive() || editor.isAlive() || tutorial.isAlive() || ConnectServer.moveListener.isAlive() || screensaver.isAlive()) {
             isInterrupted = true;
             try {

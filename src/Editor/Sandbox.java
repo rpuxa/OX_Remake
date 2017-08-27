@@ -1,6 +1,7 @@
 package Editor;
 
 import Editor.Analyze.Analyze;
+import Editor.Tree.MovesTree;
 import Engine.BitBoard;
 import Jogl.Ball;
 import Jogl.JavaRenderer;
@@ -13,6 +14,8 @@ public class Sandbox implements Runnable {
     public static boolean analyze_interrupt = false;
     public static boolean start_analyze = false;
     public static Thread analyzePosition = new Thread();
+    public static MovesTree tree = new MovesTree(Position.make_position_empty(true,true));
+
 
     @Override
     public void run() {
@@ -22,7 +25,8 @@ public class Sandbox implements Runnable {
             analyzePosition = new Thread(new Analyze());
             analyzePosition.start();
         }
-        Position.add_to_history_positions(JavaRenderer.position,true);
+        tree = new MovesTree(JavaRenderer.position);
+        tree.setVisible(true);
         while (true) {
             while (JavaRenderer.column_chosen == null) {
                 if (Menu.isInterrupted) {
@@ -57,7 +61,7 @@ public class Sandbox implements Runnable {
             }
 
             Play.checkEnd(JavaRenderer.position.bitBoard);
-            Position.add_to_history_positions(JavaRenderer.position,false);
+            tree.add(JavaRenderer.position);
 
 
             if (Play.checkEnd(JavaRenderer.position.bitBoard)){

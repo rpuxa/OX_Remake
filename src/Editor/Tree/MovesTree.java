@@ -1,33 +1,32 @@
 package Editor.Tree;
 
+import Editor.Sandbox;
+import Jogl.JavaDia;
+import Jogl.JavaRenderer;
 import Jogl.Position;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.Serializable;
 import java.util.ArrayList;
+
+import static Editor.Tree.MovesTree.ALTERNATIVE_MOVE;
+import static Editor.Tree.MovesTree.NEXT_MOVE;
 
 public class MovesTree implements Serializable {
     private Move firstMove;
     private ArrayList<Integer> cursor = new ArrayList<>();
-    private static final int NEXT_MOVE = 1;
-    private static final int ALTERNATIVE_MOVE = 2;
+    static final int NEXT_MOVE = 1;
+    static final int ALTERNATIVE_MOVE = 2;
     private static final int CURSOR_BACK = 0;
     private static final int CURSOR_NEXT = 1;
-
-    public static void main(String[] args) {
-        MovesTree movesTree = new MovesTree(Position.make_position_empty(true,true));
-        movesTree.add(Position.make_position_empty(true,true));
-        movesTree.add(Position.make_position_empty(true,true));
-        movesTree.add(Position.make_position_empty(true,true));
-        movesTree.setCursor(CURSOR_BACK);
-        movesTree.add(Position.make_position_empty(true,true));
-        movesTree.setCursor(CURSOR_BACK);
-        movesTree.add(Position.make_position_empty(true,true));
-    }
+    public static TreePanel treePanel = new TreePanel(new ArrayList<>());
 
     public MovesTree(Position startPosition) {
         firstMove = new Move(startPosition);
+        update();
     }
 
     public void add(Position position) {
@@ -43,6 +42,17 @@ public class MovesTree implements Serializable {
             }
             move.setAlternativeMove(new Move(Position.make_position_from_position(position)));
         }
+        update();
+    }
+
+    public void update(){
+        JavaDia.scroll_tree.remove(treePanel);
+        treePanel = new TreePanel(getLabels());
+        JavaDia.scroll_tree.add(treePanel);
+    }
+
+    public void setVisible(boolean bFlag){
+        JavaDia.scroll_tree.setVisible(bFlag);
     }
 
     public void setCursor(int action) {
@@ -59,7 +69,14 @@ public class MovesTree implements Serializable {
         }
     }
 
+    public void setCursor(ArrayList<Integer> cursor) {
+        this.cursor = new ArrayList<>(cursor);
+        JavaRenderer.position = Position.make_position_from_position(getMove(cursor).getCurrentPos());
+    }
+
     private Move getMove(ArrayList<Integer> cursor){
+        if (cursor.isEmpty())
+            return firstMove;
         Move move = firstMove;
         for (int i : cursor)
             if (i == NEXT_MOVE)
@@ -68,6 +85,10 @@ public class MovesTree implements Serializable {
                 move = move.getAlternativeMove();
         return move;
     }
+
+    public ArrayList<JLabel> getLabels(){
+        return firstMove.toJLabelsArrayList(firstMove.getCurrentPos(),1,true, true, new ArrayList<>());
+    }
 }
 
 class Move implements Serializable {
@@ -75,7 +96,7 @@ class Move implements Serializable {
     private Move nexMove, alternativeMove;
 
     public Move(Position currentPos) {
-        this.currentPos = currentPos;
+        this.currentPos = Position.make_position_from_position(currentPos);
     }
 
     public Move[] toArray() {
@@ -118,30 +139,61 @@ class Move implements Serializable {
         long mask = black | white;
         int bit = (int) Math.round(Math.log(mask) / Math.log(2));
         int column = bit & 15;
-        char letter = (char) ('A' + column >> 2);
-        char num = (char) ('1' + (3 - column & 4));
-        return "" + ((number + 1)/2) + move + " " + letter + num + ", ";
+        char letter = (char) ('A' + (column >>> 2));
+        char num = (char) ('1' + (3 - (column % 4)));
+        return ((number + 1)/2) + move + " " + letter + num;
     }
 
-    private static final Font font = new Font("Times New Roman", Font.BOLD, 15);
+    private static final Font font = new Font("Times New Roman", Font.ITALIC, 18);
+    private static final Font main_font = new Font("Times New Roman", Font.BOLD, 18);
 
-    public ArrayList<JLabel> toJLabelsArrayList(Position lastPos, int number) {
+    public ArrayList<JLabel> toJLabelsArrayList(Position lastPos, int number, boolean mainMove, boolean mainLine, ArrayList<Integer> cursor) {
         ArrayList<JLabel> list = new ArrayList<>();
-        JLabel label = new JLabel(positionsToCordinates(lastPos, currentPos, number));
-        label.setFont(font);
-        list.add(label);
+        addLabel(list,(mainMove) ? "Start," : positionsToCordinates(lastPos, currentPos, number),mainLine, currentPos, cursor);
         if (getAlternativeMove() != null) {
-            label = new JLabel(" (");
-            label.setFont(font);
-            list.add(label);
-            list.addAll(getAlternativeMove().toJLabelsArrayList(currentPos, number));
-            label = new JLabel(")");
-            label.setFont(font);
-            list.add(label);
+            addLabel(list," (",false,null,null);
+            ArrayList<Integer> cursor1 = new ArrayList<>(cursor);
+            cursor1.add(ALTERNATIVE_MOVE);
+            list.addAll(getAlternativeMove().toJLabelsArrayList(lastPos, number,false,false, cursor1));
+            addLabel(list," )",false,null,null);
         }
-        if (getNexMove() != null)
-            list.addAll(getNexMove().toJLabelsArrayList(currentPos, number + 1));
+        if (getNexMove() != null) {
+            addLabel(list,", ",mainLine,null,null);
+            ArrayList<Integer> cursor1 = new ArrayList<>(cursor);
+            cursor1.add(NEXT_MOVE);
+            list.addAll(getNexMove().toJLabelsArrayList(currentPos, number + 1, false,mainLine,cursor1));
+        }
         return list;
+    }
+
+    private void addLabel(ArrayList<JLabel> list, String st, boolean mainLine, Position pos, ArrayList<Integer> cursor){
+        JLabel label = new JLabel(st);
+        if (mainLine)
+            label.setFont(main_font);
+        else
+            label.setFont(font);
+        label.setOpaque(true);
+        if (pos != null){
+            label.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            label.addMouseListener(new MouseListener() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    for (JLabel label1 : TreePanel.moves)
+                        label1.setBackground(new Color(238,238,238));
+                    label.setBackground(new Color(208, 185, 42));
+                    Sandbox.tree.setCursor(cursor);
+                }
+                @Override
+                public void mousePressed(MouseEvent e) {}
+                @Override
+                public void mouseReleased(MouseEvent e) {}
+                @Override
+                public void mouseEntered(MouseEvent e) {}
+                @Override
+                public void mouseExited(MouseEvent e) {}
+            });
+        }
+        list.add(label);
     }
 }
 

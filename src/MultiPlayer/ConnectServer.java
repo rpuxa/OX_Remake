@@ -1,5 +1,7 @@
 package MultiPlayer;
 
+import Editor.Tree.MovesTree;
+import Editor.Tree.TreePanel;
 import Engine.BitBoard;
 import PlayEngine.Play;
 import Jogl.*;

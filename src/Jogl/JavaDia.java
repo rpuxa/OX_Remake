@@ -30,7 +30,8 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
     private static final double pi = 3.141592;
     public static JFrame frame;
     static JFrame loading;
-    public static JPanel scroll_lobby = new JPanel();
+    public static JScrollPane scroll_lobby = new JScrollPane();
+    public static JScrollPane scroll_tree = new JScrollPane();
     static {
         new Thread(() -> {
             loading = new JFrame();
@@ -60,7 +61,11 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
         scroll_lobby.setLayout(null);
         scroll_lobby.setSize(310,300);
         scroll_lobby.setVisible(false);
+        scroll_tree.setLayout(null);
+        scroll_tree.setSize(241,510);
+        scroll_tree.setVisible(false);
         frame.add(scroll_lobby);
+        frame.add(scroll_tree);
         frame.add(ConnectServer.time);
         frame.add(ConnectServer.versus);
         frame.add(canvas);
@@ -81,6 +86,10 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
                 }
                 try{
                     scroll_lobby.setLocation(frame.getWidth()-scroll_lobby.getWidth(),0);
+                } catch (NullPointerException ignore){
+                }
+                try{
+                    scroll_tree.setLocation(frame.getWidth()-scroll_tree.getWidth(),0);
                 } catch (NullPointerException ignore){
                 }
                 try {
