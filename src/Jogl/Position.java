@@ -66,4 +66,21 @@ public class Position implements Serializable {
         return true;
     }
 
+    @Override
+    public boolean equals(Object obj){
+        if (obj == null)
+            return false;
+        if (obj == this)
+            return true;
+        if (!(obj instanceof Position))
+            return false;
+        Position other = (Position) obj;
+        return other.bitBoard.equals(this.bitBoard);
+    }
+
+    @Override
+    public int hashCode(){
+        return bitBoard.hashCode();
+    }
+
 }

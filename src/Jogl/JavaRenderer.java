@@ -52,6 +52,7 @@ public class JavaRenderer implements GLEventListener {
     static Point mouse_cords_viewport;
     static boolean isScreensaverOn = true;
     public static int lastMove = -1;
+    static boolean fastMode = false;
 
     private static float h;
 
@@ -120,6 +121,9 @@ public class JavaRenderer implements GLEventListener {
             points = new Point3D[]{new Point3D(cords1[0], cords1[1], cords1[2]), new Point3D(cords2[0], cords2[1], cords2[2])};
 
             check_double_click = mouse_double_click;
+        } else {
+            check_double_click = false;
+            mouse_double_click = false;
         }
 
         for (float x = 0; x < 4; x++)
@@ -445,7 +449,7 @@ public class JavaRenderer implements GLEventListener {
         try {
             String[] names = {"NewGame", "fon", "sandbox", "MultiPlayer", "play", "Exit", "Back", "White", "Black", "BlackWins", "WhiteWins", "Draw", "wait"
                     ,"Tutorial","radio_on","radio_off","arrow_right","arrow_left","resign","offer","rematch","start","profile","log_out","opp_rec","my_rec",
-                    "playback","editor","save","load","start_analyze","stop_analyze","delete","clear","background"};
+                    "playback","editor","save","load","start_analyze","stop_analyze","delete","clear"};
             int type = 1;
             for (String name : names) {
                 File im = new File("Images/" + name + ".png");

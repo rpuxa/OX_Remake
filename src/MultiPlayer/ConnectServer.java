@@ -99,12 +99,14 @@ public class ConnectServer implements Runnable {
                     Object data = server_command.getData();
                     switch (server_command.getCommand()) {
                         case BEGIN_GAME_FOR_WHITE: {
-                            playTime = (int) data;
+                            if (data != null)
+                                playTime = (int) data;
                             beginGame(true);
                             break;
                         }
                         case BEGIN_GAME_FOR_BLACK: {
-                            playTime = (int) data;
+                            if (data != null)
+                                playTime = (int) data;
                             beginGame(false);
                             break;
                         }

@@ -122,6 +122,7 @@ public class BitBoard implements Serializable {
         return 0;
     }
 
+    @Override
     public boolean equals(Object obj) {
         if (obj == this) return true;
         if (obj == null) return false;
@@ -159,6 +160,7 @@ public class BitBoard implements Serializable {
         return hash;
     }
 
+    @Override
     public int hashCode() {
         int hash = 0;
         for (int i = 0; i < 64; ++i) {

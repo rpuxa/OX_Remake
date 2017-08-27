@@ -20,6 +20,7 @@ import java.util.ArrayList;
 
 import PlayEngine.ChoseDif;
 
+import static Jogl.JavaRenderer.fastMode;
 import static MultiPlayer.ConnectServer.*;
 
 public class Menu {
@@ -455,7 +456,10 @@ public class Menu {
         isInterrupted = false;
         JavaRenderer.analyzed_column = null;
         JavaRenderer.score = null;
-        JavaRenderer.speed = 0.001;
+        if (!fastMode)
+            JavaRenderer.speed = 0.001;
+        else
+            JavaRenderer.speed = 1;
         Ai.history_moves.clear();
         new_game.visible = false;
         sandbox.visible = false;

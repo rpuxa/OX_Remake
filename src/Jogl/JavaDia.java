@@ -13,6 +13,9 @@ import com.jogamp.opengl.awt.GLCanvas;
 
 import javax.swing.*;
 
+import static Jogl.JavaRenderer.fastMode;
+import static Jogl.JavaRenderer.isScreensaverOn;
+import static Jogl.JavaRenderer.speed;
 import static MultiPlayer.AudioChat.RecordVoice.targetDataLine;
 import static MultiPlayer.ConnectServer.*;
 
@@ -121,6 +124,16 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
             RecordVoice.pressed_R = true;
             new Thread(RecordVoice::record).start();
         }
+
+        if (e.getKeyCode() == KeyEvent.VK_F) {
+            fastMode ^= true;
+            if (!isScreensaverOn && !Menu.changingPos)
+            if (fastMode)
+                speed = 1;
+            else
+                speed = .001;
+            Menu.sounds("click");
+        }
     }
 
     public void keyReleased(KeyEvent e) {
@@ -152,11 +165,14 @@ public class JavaDia implements Runnable, KeyListener, MouseListener, MouseMotio
             JavaRenderer.mouse_click = new double[2];
             JavaRenderer.mouse_click[0] = 2*point.getX()/canvas.getSize().getWidth()-1;
             JavaRenderer.mouse_click[1] = 2*(canvas.getSize().getHeight() - point.getY())/canvas.getSize().getHeight()-1;
-            if (e.getWhen() - when_click <= 500) {
-                JavaRenderer.mouse_double_click = true;
-                when_click = 0;
+            if (!fastMode) {
+                if (e.getWhen() - when_click <= 500) {
+                    JavaRenderer.mouse_double_click = true;
+                    when_click = 0;
+                } else
+                    when_click = e.getWhen();
             } else
-                when_click = e.getWhen();
+                JavaRenderer.mouse_double_click = true;
         }
 
     }
