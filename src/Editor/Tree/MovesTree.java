@@ -20,9 +20,11 @@ public class MovesTree implements Serializable {
     private ArrayList<Integer> cursor = new ArrayList<>();
     static final int NEXT_MOVE = 1;
     static final int ALTERNATIVE_MOVE = 2;
-    private static final int CURSOR_BACK = 0;
-    private static final int CURSOR_NEXT = 1;
-    public static TreePanel treePanel = new TreePanel(new ArrayList<>());
+    static final int CURSOR_BACK = 0;
+    static final int CURSOR_NEXT = 1;
+    static final int CURSOR_BEGIN = 2;
+    static final int CURSOR_END = 3;
+    private static TreePanel treePanel = new TreePanel(new ArrayList<>());
 
     public MovesTree(Position startPosition) {
         firstMove = new Move(startPosition);
@@ -44,11 +46,11 @@ public class MovesTree implements Serializable {
             cursor.add(ALTERNATIVE_MOVE);
             while (move.getAlternativeMove() != null) {
                 move = move.getAlternativeMove();
-                cursor.add(ALTERNATIVE_MOVE);
                 if (move.getCurrentPos().equals(position)) {
                     equals = true;
                     break;
                 }
+                cursor.add(ALTERNATIVE_MOVE);
             }
             if (!equals)
                 move.setAlternativeMove(new Move(Position.make_position_from_position(position)));
@@ -56,34 +58,41 @@ public class MovesTree implements Serializable {
         update();
     }
 
-    public void update(){
-        JavaDia.scroll_tree.remove(treePanel);
+    private void update(){
+        JavaDia.treeSandbox.remove(treePanel);
         treePanel = new TreePanel(getLabels(cursor));
-        JavaDia.scroll_tree.add(treePanel);
-        JavaDia.scroll_tree.repaint();
-        JavaDia.scroll_tree.revalidate();
+        JavaDia.treeSandbox.add(treePanel);
+        JavaDia.treeSandbox.repaint();
+        JavaDia.treeSandbox.revalidate();
     }
 
     public void setVisible(boolean bFlag){
-        JavaDia.scroll_tree.setVisible(bFlag);
+        JavaDia.treeSandbox.setVisible(bFlag);
     }
 
-    public void setCursor(int action) {
+    void setCursor(int action) {
         if (action == CURSOR_BACK) {
-            try {
-                cursor.remove(cursor.size() - 1);
-            } catch (IndexOutOfBoundsException e) {
-            }
+            if (!cursor.isEmpty())
+            cursor.remove(cursor.size() - 1);
         } else if (action == CURSOR_NEXT) {
             ArrayList<Integer> cursor = new ArrayList<>(this.cursor);
             cursor.add(NEXT_MOVE);
             if (getMove(cursor) != null)
                 this.cursor = cursor;
+        } else if (action == CURSOR_BEGIN) {
+             do {
+                 if (!cursor.isEmpty())
+                    cursor.remove(cursor.size() - 1);
+            } while (!cursor.isEmpty() && cursor.get(cursor.size() - 1) != ALTERNATIVE_MOVE);
+        } else if (action == CURSOR_END){
+            while (getMove(cursor).getNexMove() != null)
+                cursor.add(NEXT_MOVE);
         }
         JavaRenderer.position = Position.make_position_from_position(getMove(cursor).getCurrentPos());
+        update();
     }
 
-    public void setCursor(ArrayList<Integer> cursor) {
+    void setCursor(ArrayList<Integer> cursor) {
         this.cursor = new ArrayList<>(cursor);
         JavaRenderer.position = Position.make_position_from_position(getMove(cursor).getCurrentPos());
     }
@@ -100,9 +109,9 @@ public class MovesTree implements Serializable {
         return move;
     }
 
-    public ArrayList<JLabel> getLabels(ArrayList<Integer> cursorNow){
+    private ArrayList<JLabel> getLabels(ArrayList<Integer> cursorNow){
         Move.cursorNow = new ArrayList<>(cursorNow);
-        return firstMove.toJLabelsArrayList(firstMove.getCurrentPos(),1,true, true, new ArrayList<>());
+        return firstMove.toJLabelsArrayList(firstMove.getCurrentPos(),0,true, true, new ArrayList<>());
     }
 }
 
@@ -110,35 +119,27 @@ class Move implements Serializable {
     private Position currentPos;
     private Move nexMove, alternativeMove;
 
-    public Move(Position currentPos) {
+    Move(Position currentPos) {
         this.currentPos = Position.make_position_from_position(currentPos);
     }
 
-    public Move[] toArray() {
-        return new Move[]{alternativeMove, nexMove};
-    }
-
-    public Position getCurrentPos() {
+    Position getCurrentPos() {
         return currentPos;
     }
 
-    public void setCurrentPos(Position currentPos) {
-        this.currentPos = currentPos;
-    }
-
-    public Move getNexMove() {
+    Move getNexMove() {
         return nexMove;
     }
 
-    public void setNexMove(Move nexMove) {
+    void setNexMove(Move nexMove) {
         this.nexMove = nexMove;
     }
 
-    public Move getAlternativeMove() {
+    Move getAlternativeMove() {
         return alternativeMove;
     }
 
-    public void setAlternativeMove(Move alternativeMove) {
+    void setAlternativeMove(Move alternativeMove) {
         this.alternativeMove = alternativeMove;
     }
 
@@ -166,7 +167,7 @@ class Move implements Serializable {
     private static final Font main_font = new Font("Times New Roman", Font.BOLD, 18);
     static ArrayList<Integer> cursorNow = new ArrayList<>();
 
-    public ArrayList<JLabel> toJLabelsArrayList(Position lastPos, int number, boolean mainMove, boolean mainLine, ArrayList<Integer> cursor) {
+    ArrayList<JLabel> toJLabelsArrayList(Position lastPos, int number, boolean mainMove, boolean mainLine, ArrayList<Integer> cursor) {
         ArrayList<JLabel> list = new ArrayList<>();
         addLabel(list,(mainMove) ? "Start" : positionsToCordinates(lastPos, currentPos, number),mainLine, currentPos, cursor);
         if (getAlternativeMove() != null) {

@@ -48,7 +48,6 @@ public class Menu {
     private static final int RESIGN = 19;
     private static final int OFFER_DRAW = 20;
     private static final int REMATCH = 21;
-    private static final int START_GAME = 22;
     private static final int PROFILE = 23;
     private static final int LOG_OUT = 24;
     private static final int OPPONENT_RECORDING = 25;

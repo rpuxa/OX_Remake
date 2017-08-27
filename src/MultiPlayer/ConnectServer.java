@@ -1,7 +1,5 @@
 package MultiPlayer;
 
-import Editor.Tree.MovesTree;
-import Editor.Tree.TreePanel;
 import Engine.BitBoard;
 import PlayEngine.Play;
 import Jogl.*;
@@ -48,8 +46,8 @@ public class ConnectServer implements Runnable {
     private final static int LOG_OUT = 20;
     public final static int CHAT_AUDIO = 21;
     public final static int CHAT_AUDIO_OPPONENT_RECORDING = 22;
-    public final static int SET_TIME = 23;
-    public final static int TIME_END = 24;
+    private final static int SET_TIME = 23;
+    private final static int TIME_END = 24;
     final static int UPDATE_PLAYER_LIST = 25;
     final static int INVITE_OPPONENT = 26;
     private final static int START_GAME_WITH_OPPONENT = 27;
@@ -466,10 +464,6 @@ public class ConnectServer implements Runnable {
         Menu.resign.visible = false;
         Menu.offer.visible = false;
         Menu.rematch.visible = true;
-    }
-
-    public static void startGame(){
-
     }
 
     static void zeit(){
